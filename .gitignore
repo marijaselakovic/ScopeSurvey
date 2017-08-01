@@ -21,4 +21,5 @@ sample-*.pdf
 *.tgz
 *.zip
 *.rpi
+*.synctex.gz
 *~
