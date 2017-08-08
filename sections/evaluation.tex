@@ -1,0 +1,64 @@
+\section{Evaluation}
+Before evaluation we should introduce the notion of inlining...
+RQ:
+\begin{itemize}
+\item \emph{What is the proportion of time spent in native vs. non-native job vertices?}
+
+\item \emph{What proportion of time can be optimized having the current list of methods with C++ implementation?}
+
+\item \emph{What proportion of time can be optimized by extending the list of methods with C++ implementation? Which methods should be the most important for C++ implementation?}
+
+
+\end{itemize}
+
+\subsection{Experimental Setup}
+5 data centers, time span, mention that many jobs are periodic (run usually daily or every couple of days)
+
+\begin{figure}[ht]
+
+\caption{Table with number of jobs and total cpu time for every data center}
+\end{figure}
+
+\subsection{Native vs. Non-Native Time}
+
+
+This figure illustrates how much time is spent in vertices (job stages) that run as native vs. non-native code. x axis represents each data center, while y axis gives the percentage... 
+\begin{figure}[ht]
+
+\caption{graph that shows how much time is spent in native vs. non-native job stages}
+\end{figure}
+
+\subsection{Optimizable Job Stages}
+
+This figure illustrates how much time is spent in job stages that we can optimize by inlining the user-written logic. X axis represents data center, Y axis represents precentage of time spent in inlineable job stages relative to total data center time and total time spent in non-native code.
+
+\begin{figure}[ht]
+
+\caption{Optimizable job stages}
+\end{figure}
+
+\subsection{Potential for C++ Translation}
+
+The following figure shows how much time can be affected by extending the list of functions that have C++ implementations. X axis represents data center, Y axis precentage of time spent in job stages that can be optimized, relative to total non-native and data center time.
+
+\begin{figure}[ht]
+
+\caption{Potentially optimizable job stages}
+\end{figure}
+
+\subsubsection{Most Relevant .NET Framework Methods}
+
+Ranking criteria: cost of job stage
+
+The table below shows for every data center what are the most important .NET framework methods taking into account our ranking criteria...Furthermore, it illustrates how much time would be affected by providing C++ implementation of these methods, relative to total non-native time and total data center time.
+
+\begin{figure}[ht]
+
+\caption{Most relevant .NET methods per data center}
+\end{figure}
+
+
+
+
+
+
