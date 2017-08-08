@@ -87,8 +87,15 @@
 
 \begin{abstract}
 
-To perform big data analytics jobs languages that combine relational (SQL) with non-relational code (Java, C$\sharp$, Scala) have been developed.
-These languages become very popular among developers because they allow writing big data jobs in a declarative manner, while the decision on how to distribute the job over processors is completely taken by the runtime. Even though SQL optimizations have been extensively researched over past several decades, still the little is known on why and how to optimize these jobs across different languages. In this paper, we illustrate that job stages with non-relational code take between 45-70\% of data center CPU time by empirically studying over 3 millions of SCOPE jobs across five data centers in Microsoft. We further explore the potential for SCOPE optimization by generating more native code from the non-relational part. Finally, we present X case studies showing that triggering more generation of native code in these jobs yields to significant performance improvement that ranges between Y and Z\%.
+Systems for big data analytics are programmed in languages that combine relational (SQL) with non-relational code (Java, C$\sharp$, Scala).
+By writing big data jobs in a declarative manner,
+the decision on how to distribute the job over processors is managed automatically by the runtime.
+Even though SQL optimizations have been extensively researched over past several decades,
+still  little is known on why and how to optimize such cross-language systems.
+In this paper, we illustrate that job stages with non-relational code take between 45-70\% of data center CPU time by empirically studying over
+3 million SCOPE jobs across five data centers within Microsoft.
+We further explore the potential for SCOPE optimization by generating more native code from the non-relational part.
+Finally, we present X case studies showing that triggering more generation of native code in these jobs yields significant performance improvement that ranges between Y and Z\%.
 
 \end{abstract}
 
