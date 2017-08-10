@@ -1,2 +1,86 @@
 \section{Introduction}
+\emph{MapReduce} framework has become an immensely popular for easy development of scalable parallel applications that process large amounts of data. 
+The advantage of MapReduce is that it isolates the details of running a big data application as a distributed program. 
+To ease the use of MapReduce, several projects (Apache Pig, Apache Hive or SCOPE) provide high-level declarative interfaces on top of the MapReduce framework. 
+This means that big data processing jobs are composed of queries expressed in an SQL-like declarative language with expressions written in languages like Java, C\# or Scala.
+
+However, the expressiveness of MapReduce languages comes with a cost and these systems lag far behind traditional database systems in runtime efficiency~\cite{Jahani:2011,Pavlo:2009}.
+One source of inefficiency is due to non-relational code found in big data queries. 
+Despite powerfulness of SQL optimizations, such optimizations can not be applied to arbitrary code written in an imperative language.
+This calls for cross language optimizations in order to obtain a high-level efficiency of processing big data jobs.
+Moreover, we believe that increasing hardware and computing power is no longer a sustainable way of improving the efficiency of big data processing . 
+
+The goal of this work is to understand how the time is spent in big-data jobs and where is a potential for cross language optimizations.
+To achieve this goal, we empiricaly analyse over 3,000,000 SCOPE jobs that run across five data centers at Microsoft during one week. 
+SCOPE (Structured Computations for Parallel Execution) is a query language that combines relational logic written in SQL with user expressions written in C\#.
+The language supports MapReduce programming model and is developed at Microsoft for big data processing. 
+Nowadays, it is used for almost 450,000 daily jobs running on several data centers in Microsoft.
+
+As described later in Section~\ref{sec:background}, the stage of SCOPE job can run as native (C++) if it does not contain any non-relational code. 
+However, this is unlikely the case and to run C\# code in SCOPE script the runtime performs data serialization from C++ format to format required by .NET runtime. 
+This process of data serialization and deserialization is inherently very expensive and to increase the number of job stages that run as native, the SCOPE compiler provides C++ implementation for a subset of .NET framework methods. 
+To illustrate when SCOPE script runs as native vs. non-native, consider examples in Figure~\ref{fig:example}. 
+Both code fragments are very simple SCOPE jobs. 
+The script in Figure~\ref{fig:native} runs as native, because SCOPE compiler has C++ implementation for \emph{String.isNullOrEmpty} method. On the other hand, the script in Figure~\ref{fig:non-native} has a call to \emph{Split} method, which is not optimized by the compiler and this causes entire script to run as non-native (C\# code).
+
+\begin{figure}[ht]
+ \begin{minipage}[b]{\linewidth}
+  
+   \begin{verbatim}
+data = SELECT *
+       FROM inputStream
+       WHERE !String.IsNullOrEmpty(A);
+\end{verbatim}
+
+    \subcaption{Job running as native.}
+    \label{fig:native}
+  \end{minipage}
+  %
+  \begin{minipage}[b]{\linewidth}
+   \begin{verbatim}
+data = SELECT A.Split(".")[0] AS First
+       FROM inputStream
+       WHERE !String.IsNullOrEmpty(A);
+    \end{verbatim}
+
+    \subcaption{Job running as non-native.}
+    \label{fig:non-native}
+  \end{minipage}
+
+
+\caption{Examples of SCOPE scripts that run as native and non-native}
+\label{fig:example}
+\end{figure}
+
+Despite knowing the cause of inefficiencies, still the little is known about how much time SCOPE jobs spend in non-relational code and what are the opportunities to trigger more generation of native code. 
+To answer these questions, we propose a new profiling infrastructure based on static analysis of job artifacts.
+By doing this, we are able to post-analyse large amount of jobs without introducing any additional overhead.
+Except the time spent in non-relational code, our profiling approach also surveys different sources of non-relational code in SCOPE jobs.
+It returns a list of most commonly used framework methods, for which having C++ implementation would trigger more generation of native code.
+Finally, we discuss the effects of cross-language optimization based on \emph{method inlining}. 
+The idea behind method inlining is to instead calling a method, move the logic of that method to the operator. By doing this, the compiler is able generate native code from inlined logic.
+We prove the effectiveness of such optimizations in Z case studies by optimizing K jobs from U different teams at Microsoft. 
+
+Our experimental evaluation shows that non-native code takes between 45-75\% of data center CPU time. By further increasing the list of framework functions that have native implementation we can optimize up to Z\% of data center time.
+Finally, we illustrate that performance impact of inlining jobs to run as native is statistically significant and range between A and B\%. 
+
+As a consequence, our findings motivate future research in at least two ways.
+First, on tools and techniques that help developers write more efficient big data jobs by avoiding unnecessary generation of non-native code. 
+Second, on compiler optimizations that automatically generate native code from the non-relational logic.
+
+
+In summary, this work contributes the following:
+\begin{itemize}
+\item \emph{Profiling infrastructure for analyzing SCOPE jobs.} 
+We present the approach for profiling data centers based on static analysis of job artifacts. 
+The approach reports time spent in relational vs non-relational code and detects different sources of non-relational code for every jobs stage. 
+
+\item \emph{Reporting opporunities for cross-language optimizations.} We discuss two possible ways to enable further generation of native code. 
+First, we survey the most relevant framework functions relevant for native implementation. 
+Second, we present an analysis to find opportunities that trigger the generation of native code by \emph{inlining} user-written functions.  
+
+\item \emph{Empirical evidence.} 
+We illustrate by X case studies that enabling job stage to run as native code signifcantly improve the job performance by factors Y-K.
+\end{itemize}
+
 

@@ -1,10 +1,11 @@
 \section{Background}
+\label{sec:background}
 Many (all?) ``Big Data" systems are actually a mixture of languages \cite{}.
 In general, we categorize them as comprising a {\it relational} part and a {\it non-relational} part.
 The former is some variant of SQL \cite{}, i.e., a declarative data-flow language that expresses how data flows
 from inputs to outputs (both usually being relational tables) through a series of data-parallel operators
 such as filters, projections, and various types of joins.
-The non-relational part is expressed in an imperative language, like C$\sharp$, Java, Scala, or Python \cite{}.
+The non-relational part is expressed in an imperative language, like C\#, Java, Scala, or Python \cite{}.
 
 The relational aspect is crucial: it is what enables the automatic parallelization for efficiently scaling out to
 arbitrary amounts o data.
@@ -16,10 +17,10 @@ to the ordering of the input.
 SCOPE \cite{} is a Big Data system used internally within Microsoft.
 However it is transitioning into an external offering as U-SQL \cite{}.
 Its relational part is very similar to SQL, enough so that we will ignore any differences.
-The non-relational part is C$\sharp$\cite{}.
-This means that all expressions in a SCOPE program (aka {\it script}) are written as C$\sharp$ expressions.
+The non-relational part is C\#\cite{}.
+This means that all expressions in a SCOPE program (aka {\it script}) are written as C\# expressions.
 In addition, SCOPE allows user-defined functions (written as C\# methods) and user-defined operators
-(written as C$\sharp$ classes).
+(written as C\# classes).
 
 \subsubsection{Execution of a Scope Script}
 A SCOPE script defines a directed acyclic graph (DAG) where each vertex is a set of operators implemented on the
@@ -34,21 +35,21 @@ table from a data source, whereas the rest of the filter may be in a vertex that
 the input layer.
 
 \subsection{Running C++ vs. C$\sharp$ Vertex}
-The SCOPE compiler generates both C++ and C$\sharp$ operators for the same source-level construct.
-Each operator, however, must execute either entirely in C$\sharp$ or C++: mixed code is not provided for.
+The SCOPE compiler generates both C++ and C\# operators for the same source-level construct.
+Each operator, however, must execute either entirely in C\# or C++: mixed code is not provided for.
 Thus, when possible, the C++ operator is preferred because the data layout in stored data uses C++ data structures.
 Thus, for example, a simple projection of a subset of the columns can be done entirely
 without using the .NET Runtime.
 But when a script contains a C\# expression, such as in Figure~\ref{example:SimpleFilter}, then
-each row in the input table must be converted to a C\# representation, i.e., a C$\sharp$ object representing
+each row in the input table must be converted to a C\# representation, i.e., a C\# object representing
 the row must be created.
-Then the C$\sharp$ expression can be evaluated in the .NET Runtime.
+Then the C\# expression can be evaluated in the .NET Runtime.
 
 Because this can be inefficient, the SCOPE runtime contains C++ functions that are semantically
 equivalent to a subset of the .NET Framework methods that are frequently used; these are called
 {\it intrinsics}.
 The SCOPE compiler then emit calls to the (C++) intrinsics in the C++ generated operator, which is
-then used at runtime in preference to the C$\sharp$ generated operator.
+then used at runtime in preference to the C\# generated operator.
 (As opposed to using {\it interop} to execute native code from within the .NET Runtime.)
 
 
