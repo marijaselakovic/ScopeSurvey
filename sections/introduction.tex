@@ -1,27 +1,39 @@
 \section{Introduction}
-\emph{MapReduce} framework has become an immensely popular for easy development of scalable parallel applications that process large amounts of data. 
-The advantage of MapReduce is that it isolates the details of running a big data application as a distributed program. 
-To ease the use of MapReduce, several projects (Apache Pig, Apache Hive or SCOPE) provide high-level declarative interfaces on top of the MapReduce framework. 
-This means that big data processing jobs are composed of queries expressed in an SQL-like declarative language with expressions written in languages like Java, C\# or Scala.
+Large-scale data-processing frameworks, such as MapReduce~\cite{MapReduce}, SCOPE~\cite{SCOPE}, Hadoop~\cite{Hadoop}, Spark~\cite{Spark}, have become an integral part of computing today. One reason for their immense popularity is that they provide a simplified programming model that greatly simplifies the distribution and fault-tolerance of big-data processing. For instance, frameworks like SCOPE and Spark provide a SQL-like declarative interface for specifying the relational skeleton of data-processing jobs while providing extensibility by supporting expressions and functions written in general-purpose languages like C\#, Java, or Scala. 
 
-However, the expressiveness of MapReduce languages comes with a cost and these systems lag far behind traditional database systems in runtime efficiency~\cite{Jahani:2011,Pavlo:2009}.
-One source of inefficiency is due to non-relational code found in big data queries. 
-Despite powerfulness of SQL optimizations, such optimizations can not be applied to arbitrary code written in an imperative language.
-This calls for cross language optimizations in order to obtain a high-level efficiency of processing big data jobs.
-Moreover, we believe that increasing hardware and computing power is no longer a sustainable way of improving the efficiency of big data processing . 
+%\emph{MapReduce} framework has become an immensely popular for easy development of scalable parallel applications that process large amounts of data. 
+%The advantage of MapReduce is that it isolates the details of running a big data application as a distributed program. 
+%To ease the use of MapReduce, several projects (Apache Pig, Apache Hive or SCOPE) provide high-level declarative interfaces on top of the MapReduce framework. 
+%This means that big data processing jobs are composed of queries expressed in an SQL-like declarative language with expressions written in languages like Java, C\# or Scala.
 
-The goal of this work is to understand how the time is spent in big-data jobs and where is a potential for cross language optimizations.
-To achieve this goal, we empiricaly analyse over 3,000,000 SCOPE jobs that run across five data centers at Microsoft during one week. 
-SCOPE (Structured Computations for Parallel Execution) is a query language that combines relational logic written in SQL with user expressions written in C\#.
-The language supports MapReduce programming model and is developed at Microsoft for big data processing. 
-Nowadays, it is used for almost 450,000 daily jobs running on several data centers in Microsoft.
+However, these systems are known to lag far behind traditional database systems in runtime efficiency~\cite{Jahani:2011,Pavlo:2009}, primarily because of the flexibility of the programming model they support. For instance, recent work~\cite{ousterhout-nsdi15} shows that the key bottlenecks in Spark are not the disk or the network, but the time spent by the CPU on compression/decompression of data, serialization/deserialization of the input into/from Java objects, and the JVM garbage collection. While SCOPE, as described later in Section~\ref{sec:background}, supports a hybrid native (C++) and C\# runtime partly to alleviate this overhead, our analyses of these jobs shows that the interaction between the native and C\# runtimes still remains a significant cost in the overall system. Equally importantly, the presence of non-SQL code in these jobs blocks the powerfulness of relational optimizations these data-processing runtimes implement~\cite{non-relational-opt-papers}. 
 
-As described later in Section~\ref{sec:background}, the stage of SCOPE job can run as native (C++) if it does not contain any non-relational code. 
-However, this is unlikely the case and to run C\# code in SCOPE script the runtime performs data serialization from C++ format to format required by .NET runtime. 
-This process of data serialization and deserialization is inherently very expensive and to increase the number of job stages that run as native, the SCOPE compiler provides C++ implementation for a subset of .NET framework methods. 
-To illustrate when SCOPE script runs as native vs. non-native, consider examples in Figure~\ref{fig:example}. 
-Both code fragments are very simple SCOPE jobs. 
-The script in Figure~\ref{fig:native} runs as native, because SCOPE compiler has C++ implementation for \emph{String.isNullOrEmpty} method. On the other hand, the script in Figure~\ref{fig:non-native} has a call to \emph{Split} method, which is not optimized by the compiler and this causes entire script to run as non-native (C\# code).
+
+The goal of this work is to study and better understand the key performance bottlenecks in modern data-processing systems, and propose potential for cross-language optimizations. While this paper primarily focusses on SCOPE, we believe our results and optimizations generalize to other data-processing systems. 
+%SCOPE (Structured Computations for Parallel Execution) is a query language that combines relational logic written in SQL with user expressions written in C\#.
+SCOPE is the key data-processing system used at Microsoft running at least half a million jobs daily on serveral Microsoft data centers. 
+Figure~\ref{fig:example} shows a simple example of a SCOPE script that interleaves relational logic with C\# expressions. The SCOPE compiler 
+treats certain C\# expressions as {\em intrisics}. In other words, it understands that the expression {\tt String.isNullOrEmpty(A)} is checking whether the field {\tt A} is null or empty and accordingly executes the entire query natively with performance akin to an equivalent SQL query. Also, if this query is part of a larger query, then the SCOPE optimizer performs the relational optimization of moving the filter {\tt String.isNullOrEmpty(A)} to earlier portions of the query to significantly reduce the data processed during the execution.
+
+%To achieve this goal, we empiricaly analyse over 3,000,000 SCOPE jobs that run across five data centers at Microsoft during one week. 
+
+%The language supports MapReduce programming model and is developed at Microsoft for big data processing. 
+%Nowadays, it is used for almost 450,000 daily jobs running on several data centers in Microsoft.
+
+
+%One source of inefficiency is due to non-relational code found in big data queries. 
+%Despite powerfulness of SQL optimizations, such optimizations can not be applied to arbitrary code written in an imperative language.
+%This calls for cross language optimizations in order to obtain a high-level efficiency of processing big data jobs.
+%Moreover, we believe that increasing hardware and computing power is no longer a sustainable way of improving the efficiency of big data processing . 
+
+%The goal of this work is to understand how the time is spent in big-data jobs and where is a potential for cross language optimizations.
+
+%As described later in Section~\ref{sec:background}, the stage of SCOPE job can run as native (C++) if it does not contain any non-relational code. 
+%However, this is unlikely the case and to run C\# code in SCOPE script the runtime performs data serialization from C++ format to format required by .NET runtime. 
+%This process of data serialization and deserialization is inherently very expensive and to increase the number of job stages that run as native, the SCOPE compiler provides C++ implementation for a subset of .NET framework methods. 
+%To illustrate when SCOPE script runs as native vs. non-native, consider examples in Figure~\ref{fig:example}. 
+%Both code fragments are very simple SCOPE jobs. 
+%The script in Figure~\ref{fig:native} runs as native, because SCOPE compiler has C++ implementation for \emph{String.isNullOrEmpty} method. On the other hand, the script in Figure~\ref{fig:non-native} has a call to \emph{Split} method, which is not optimized by the compiler and this causes entire script to run as non-native (C\# code).
 
 \begin{figure}[ht]
  \begin{minipage}[b]{\linewidth}
@@ -38,9 +50,14 @@ data = SELECT *
   %
   \begin{minipage}[b]{\linewidth}
    \begin{verbatim}
-data = SELECT A.Split(".")[0] AS First
+data = SELECT *
        FROM inputStream
-       WHERE !String.IsNullOrEmpty(A);
+       WHERE CheckIfNullOrEmpty(A);
+
+#CS
+bool CheckIfNullOrEmpty(string input) {
+   return !String.IsNullOrEmpty(A);
+}
     \end{verbatim}
 
     \subcaption{Job running as non-native.}
@@ -51,6 +68,23 @@ data = SELECT A.Split(".")[0] AS First
 \caption{Examples of SCOPE scripts that run as native and non-native}
 \label{fig:example}
 \end{figure}
+
+On the other hand, the script in Figure~\ref{fig:non-native} is a slight variation of the query above where the user implemented the filter in a separate C\# function. Unfortunately, the SCOPE compiler treats the call to the user-defined function as a black box. As a result, the job runs in a hybrid mode where parts of the input are run natively and the rest are run in a C\# virtual machine. The resulting serialization and data-copying costs can reduce the throughput of the job by as much as XXX percent. 
+
+
+%has a call to \emph{Split} method, which the SCOPE compiler does not understand. This causes the ent
+
+
+%which is not optimized by the compiler and this causes entire script to run as non-native (C\# code).
+
+
+First, we buld a profiling infrastructure based on static anlaysis of job artifacts. 
+
+Second, we do a comprehensive survey. 
+
+Then, we use the results of the survey to propose optimizations. 
+
+Finally, we evaluate. 
 
 Despite knowing the cause of inefficiencies, still the little is known about how much time SCOPE jobs spend in non-relational code and what are the opportunities to trigger more generation of native code. 
 To answer these questions, we propose a new profiling infrastructure based on static analysis of job artifacts.
