@@ -1,4 +1,16 @@
 \section{Case Studies}
+In order to quantify the effects of optimizing the scripts, we performed a case study.
+We say that a C\# method is {\em intrinsicable} if it is a .NET Framework method for which the SCOPE compiler has a semantically equivalent C++ function.
+The jobs were chosen based on a static analysis that found {\em optimizable vertices}.
+An optimizable vertex is one that is implemented in C\#, but the C\# code calls only intrinsicable methods or user-defined functions, {\em UDFs}, where the UDF, in turn, calls only intrinsicable methods, and does not call any other UDFs, i.e., our inlining depth is one.
+Furthermore, we identified a job as being of interest if it contains an optimizable vertex was responsible for X\% of the total job's time.
+{\bf mb:[Marija, is that true? Or did we just care about the cost of the job?]}
+We categorized the jobs by how long they ran for: short, medium, and long.
+{\bf mb:[Marija, do you have any stats about the distribution of PnHours? Are there really just three buckets? [0,100), [100,1000), and [1000,...)?]}
+
+Because the input data for each job is not available, we needed to contact the job owners and ask them to re-run the job with a manually-inlined version of their script.
+We were able to have 12 jobs re-run by their owners.
+
 \begin{itemize}
 \item Description of every optimized job
 \item Performance evaluation (methodology)
