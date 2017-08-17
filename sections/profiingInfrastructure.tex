@@ -1,9 +1,28 @@
 \section{Profiling Infrastructure for Data Centers}
+This section provides details on our profiling infrastructure for data centers that run big-data jobs. Because SCOPE compiler does not provide any instrumentation facility, we chose to collect profiling data by analyzing job artifacts. The benefit of doing this is at least twofold: we can derive data for a relatively large number of jobs since we do not require re-running them, and we can also answer more complex, but interesting questions, such as which job stages run as C++ vs. C\#.
 
 \subsection{Scale of The Problem}
+SCOPE jobs run on a distributed computing platform, called Cosmos, designed for storing and analyzing massive data sets. Cosmos run on five clusters consisting of thousands of commodity servers~\cite{SCOPE}. Important properties of Cosmos is scalability and performance. Nowadays, it stores exabytes of data across hundreds of thousands of physical machines. Cosmos runs millions of big-data jobs every week and almost half million jobs every day. It is used by more than 10,000 developers at Microsoft running very diverse workloads and scenarios.
+
+Finding optimization opportunities that are applicable to such a large number of diverse jobs is a very challenging problem. To bring interesting conclusions we must ensure the scalability of our profiling infrastructure. To achieve this, the important aspect to consider is \emph{what type of information we should analyze}. In the following sections, we describe our major decisions when building infrastructure for profiling big data jobs.
 
 \subsection{Job Artifacts}
 
+After execution of a SCOPE job finishes, the runtime produces several artifacts that contain code and runtime information for every job stage. Job artifacts are indefinitely stored in Cosmos repository and this section gives an overview of each artifact we use to profile data center.
+\paragraph{Job Algebra}
+
+Job algebra is a graph representation of the job execution plan. Job vertices are presented as outer-most nodes in a graph. Each job vertex contains all operators that run inside that vertex and an operator can be either user-defined or native. Optionally, if all operators are native, the vertex can contain \emph{nativeOnly} flag indicating that entire vertex runs as native (C++). However, it does not distinguish between native and user-defined operators.
+
+
+\paragraph{Runtime Statistics}
+Runtime statistics file provides information on execution time for every job vertex and every operator inside the vertex. However, it includes only CPU times, which we use as a primary metric of a job execution time. 
+
+%\paragraph{Binaries}
+%The job repository stores a job and all third-party projects in binary format (dll) that contains both native and managed code (.NET) with the generated assembly code.
+
+
+\paragraph{Generated C\# and C++ Code}
+SCOPE runtime generates C\# and C++ code for every job. An artifact with C++ code has for every vertex a code region containing a C++ implementation of the vertex and another code region that provides class names for every operator that runs as C\#. An artifact with C\# code includes implementations of non-native operators and user-written classes and functions defined inside the script.
 
 \subsection{Static Analysis}
 
@@ -11,6 +30,7 @@
 
 
 \caption{High level picture of main steps during static analysis}
+\label{fig:analysis}
 \end{figure}
 
 
