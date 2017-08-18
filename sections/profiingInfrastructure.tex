@@ -7,6 +7,7 @@ SCOPE jobs run on a distributed computing platform, called Cosmos, designed for 
 Finding optimization opportunities that are applicable to such a large number of diverse jobs is a very challenging problem. To bring interesting conclusions we must ensure the scalability of our profiling infrastructure. To achieve this, the important aspect to consider is \emph{what type of information we should analyze}. In the following sections, we describe our major decisions when building infrastructure for profiling big data jobs.
 
 \subsection{Job Artifacts}
+\label{sec:artifacts}
 
 After execution of a SCOPE job finishes, the runtime produces several artifacts that contain code and runtime information for every job stage. Job artifacts are indefinitely stored in Cosmos repository and this section gives an overview of each artifact we use to profile data center.
 \paragraph{Job Algebra}
@@ -26,20 +27,86 @@ SCOPE runtime generates C\# and C++ code for every job. An artifact with C++ cod
 
 \subsection{Static Analysis}
 
+After collecting artifacts described in Section~\ref{sec:artifacts}, we perfom static analysis to detect different sources of C\# code in every vertex of a job. This is important to understand the opportunities for optimizing job vertices through C\# to C++ translation. For instance, a vertex can run as managed code due to a single method, or more complex C\# code.
+
+Figure~\ref{fig:analysis} gives an overview of our analysis. It has two main components: \emph{Analysis of C++ code} and \emph{Analysis of C\# code}. Each analysis performs on the granularity of a job vertex. The goal is to look for opportunities to run entire vertex as C++ code, which would remove all steps of data serialization between user and native operators within the vertex.
+
+
 \begin{figure}[ht]
+\begin{tikzpicture}[>=latex,xscale=2.7,yscale=.85,text centered,line 
+  width=.8pt]
+\tikzstyle{every node}=[draw,rounded corners,drop 
+shadow,minimum height=1em]
+\draw (1.1, 8) node[draw,text width=2em, fill = apricot] (vi) {$V_{i}$};
+\draw (0.5,8) node[draw,text width=2em, fill = apricot] (vone) {$V_{1}$};
+\draw (1.7,8) node[draw,text width=2em, fill = apricot] (vn) {$V_{n}$};
+\draw (1.1,7) node[draw,text width=12em, fill = myBlue] (cplus) {Analysis of C++ code};
+\draw (1.1,5) node[draw,text width=12em, fill = myBlue] (cs) {Analysis of C\# code};
 
 
-\caption{High level picture of main steps during static analysis}
+
+
+
+\tikzstyle{every node}=[]
+\draw (1.1,9) node[] (alg) {Job Algebra};
+\draw (2.2,7) node[] (cpluscode) {C++ code};
+
+\draw (1.1,6) node[] (names) {Class names};
+\draw (2.2,5) node[] (cscode) {C\# code};
+\draw (1.1,4) node (src) {Sources of C\# code + Inlineable functions};
+
+
+\draw[->] (alg) -- (vi);
+\draw[->] (alg) -- (vone);
+\draw[->] (alg) -- (vn);
+\draw[->] (vi) -- (cplus);
+\draw[->] (vone) -- (cplus);
+\draw[->] (vn) -- (cplus);
+\draw[->] (cplus) -- (names);
+\draw[->] (names) -- (cs);
+\draw[->] (cs) -- (src);
+\draw[->] (cpluscode) -- (cplus);
+\draw[->] (cscode) -- (cs);
+
+\end{tikzpicture}
+
+
+\caption{High level picture of static analysis}
 \label{fig:analysis}
 \end{figure}
 
+The first step of the analysis is to extract names of every job vertex, which serve as unique identifiers for vertices. Then for each vertex, the analysis parses generated C++ to find the class containing the vertex implementation. As discussed in Section~\ref{sec:artifacts}, for each vertex, C++ implementation contains two code regions: one that indicates which part of a vertex runs as C++ code and another region listing class names of operators that run as C\# code. If the latter region is empty, we conclude that entire vertex runs as C++ code. The output of the first stage of our analysis is the collection of class names that contain C\# operators.
 
-\subsubsection{Sources of Non-Native Code}
-
+Based on the output of the previous stage, the analysis parses generated C\# code to find definitions and implementation of every class in the list. The implementation of managed operators contains two sources of C\# code: generated code, which we whitelist and skip in our analysis and the user-written code. After analyzing user code, the analysis outputs the following sources of method calls:
 \begin{itemize}
-\item .NET Framework Calls
+\item .NET framework calls
 \item User written functions
-\item Custom processors, reducers, combiners, extractors,etc.
+\item User written operators 
 \end{itemize}
 
+We are particularly interested in the first two categories. It is not unusual case when a vertex runs as C\# execution just because of a framework method. We want to know what are the most important framework methods to optimize to enable C++ translation for a large number of vertices. Furthermore, we observe the cases when a logic of user-written function is relatively simple, and inlining the function logic as demonstrated in Figure~\ref{fig:example} would enable generation of C++ instead of C\# code. 
+
+The details on how we detect different sources of managed code and inlineable functions are described as follows.
+
+\subsubsection{Detecting Sources of C\# Code}
+To find .NET framework calls, it is enough to check whether a method definition comes from .NET runtime. The analysis finds user-written functions by looking for their definition inside the script or in third-party projects. Because Cosmos repository keeps only binaries of third-party projects, we further analyze only user functions for which the source code is available. It is easier to optimize these functions through inlining (as described in Section~\ref{sec:analysisUser}), because we can manually confirm the correctness of inlined code. Finally, in SCOPE, users can easily implement their own operators: extractors (for parsing and constructing rows from a file), processors and reducers (for row processing), and combiners (for processing rows from two input tables). The analysis finds user operators by checking whether a class that implements an operator inherits from one of the predefined base classes.\todo{reformulate this} We do not consider user operators for C++ translation because of \todo{elaborate on this}.
+
+
 \subsubsection{Analysis of User-Written Code}
+\label{sec:analysisUser}
+Inlining of a user-written function refers to moving a logic of the function to the script operator. We define \emph{inlineable} methods as follows.
+\begin{definition}[Inlineable method]
+Method $m$ is \emph{inlineable} method if it has the following properties:
+\begin{itemize}
+\item It contains only .NET framework calls
+\item It does not contain loops and try-catch blocks
+\item It does not contain any read or write to a variable or objects
+\item For all calls inside the method, arguments are passed by value
+\end{itemize}
+
+
+\end{definition}
+
+Furthermore, we distinguish among inlineable methods those that allow for \emph{instant} C++ generation, because all called .NET framework methods are \emph{intrinsics}. However, the analysis of other inlineable functions is important, because it provides the intuition on how many vertices are potentially optimizable in this way.
+
+%We only consider for inlineing the methods defined inside the script, because their source code is available. Even though we are aware of methods defined in third-party assemblies, because we  

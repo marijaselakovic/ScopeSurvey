@@ -4,8 +4,31 @@
 
 %\usepackage{arev}
 \usepackage{listings}
-\usepackage{verbatim}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{rotating}
 \usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{tikz}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm,float}
+\usepackage{array}
+\usepackage{enumitem}
+\usetikzlibrary {shapes.geometric,positioning,arrows,shadows}
+\usetikzlibrary{decorations.pathreplacing}
+\definecolor{myBlue}{RGB}{0,162,227}
+\definecolor{apricot}{RGB}{251,185,130}
+\renewcommand{\theoremautorefname}{Definition}
+
+
+ 
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
+
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
 
 
 % Copyright
