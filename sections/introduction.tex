@@ -5,15 +5,18 @@ Large-scale data-processing frameworks, such as MapReduce~\cite{MapReduce}, SCOP
 %The advantage of MapReduce is that it isolates the details of running a big data application as a distributed program. 
 %To ease the use of MapReduce, several projects (Apache Pig, Apache Hive or SCOPE) provide high-level declarative interfaces on top of the MapReduce framework. 
 %This means that big data processing jobs are composed of queries expressed in an SQL-like declarative language with expressions written in languages like Java, C\# or Scala.
+The relational aspect is crucial: it is what enables the automatic parallelization for efficiently scaling out to arbitrary amounts of data.
+Big data systems assume that the non-relational part is written carefully enough so that it does not violate the assumptions needed for automatic parallelization: i.e., programmers must write their non-relational logic to be deterministic and insensitive to the ordering of the input.
 
-However, these systems are known to lag far behind traditional database systems in runtime efficiency~\cite{Jahani:2011,Pavlo:2009}, primarily because of the flexibility of the programming model they support. For instance, recent work~\cite{ousterhout-nsdi15} shows that the key bottlenecks in Spark are not the disk or the network, but the time spent by the CPU on compression/decompression of data, serialization/deserialization of the input into/from Java objects, and the JVM garbage collection. While SCOPE, as described later in Section~\ref{sec:background}, supports a hybrid native (C++) and C\# runtime partly to alleviate this overhead, our analyses of these jobs shows that the interaction between the native and C\# runtimes still remains a significant cost in the overall system. Equally importantly, the presence of non-SQL code in these jobs blocks the powerfulness of relational optimizations these data-processing runtimes implement~\cite{non-relational-opt-papers}. 
+However, these systems are known to lag far behind traditional database systems in runtime efficiency~\cite{Jahani:2011,Pavlo:2009}, primarily because of the flexibility of the programming model they support. For instance,  a key bottleneck in Spark is neither the disk nor the network, but the time spent by the CPU on compression/decompression of data, serialization/deserialization of the input into/from Java objects, and the JVM garbage collection~\cite{ousterhout-nsdi15}. SCOPE,  described more fully in Section~\ref{sec:Scope}, supports a hybrid native (C++) and C\# runtime partly to alleviate this overhead.
+However, our analysis shows that the interaction between the native and C\# runtimes still remains a significant cost in the overall system.
+Equally importantly, the presence of non-relational code blocks the powerful relational optimizations implemented in these data-processing runtimes~\cite{non-relational-opt-papers}. 
 
 
-The goal of this work is to study and better understand the key performance bottlenecks in modern data-processing systems, and propose potential for cross-language optimizations. While this paper primarily focusses on SCOPE, we believe our results and optimizations generalize to other data-processing systems. 
+The goal of this work is to study and better understand the key performance bottlenecks in modern data-processing systems, and demonstrate the potential for cross-language optimizations. While this paper is primarily about SCOPE, we believe our results and optimizations generalize to other data-processing systems. 
 %SCOPE (Structured Computations for Parallel Execution) is a query language that combines relational logic written in SQL with user expressions written in C\#.
 SCOPE is the key data-processing system used at Microsoft running at least half a million jobs daily on serveral Microsoft data centers. 
-Figure~\ref{fig:example} shows a simple example of a SCOPE script that interleaves relational logic with C\# expressions. The SCOPE compiler 
-treats certain C\# expressions as {\em intrisics}. In other words, it understands that the expression {\tt String.isNullOrEmpty(A)} is checking whether the field {\tt A} is null or empty and accordingly executes the entire query natively with performance akin to an equivalent SQL query. Also, if this query is part of a larger query, then the SCOPE optimizer performs the relational optimization of moving the filter {\tt String.isNullOrEmpty(A)} to earlier portions of the query to significantly reduce the data processed during the execution.
+Figure~\ref{fig:example} shows a simple example of a SCOPE program (hereafter referred to as a {\em script}) that interleaves relational logic with C\# expressions.
 
 %To achieve this goal, we empiricaly analyse over 3,000,000 SCOPE jobs that run across five data centers at Microsoft during one week. 
 
@@ -40,36 +43,47 @@ treats certain C\# expressions as {\em intrisics}. In other words, it understand
   
    \begin{verbatim}
 data = SELECT *
-       FROM inputStream
-       WHERE !String.IsNullOrEmpty(A);
+  FROM inputStream
+  WHERE !String.IsNullOrEmpty(A) AND B == "Key1";
 \end{verbatim}
 
-    \subcaption{Job running as native.}
+    \subcaption{Predicate visible to optimizer.}
     \label{fig:native}
   \end{minipage}
   %
   \begin{minipage}[b]{\linewidth}
    \begin{verbatim}
 data = SELECT *
-       FROM inputStream
-       WHERE CheckIfNullOrEmpty(A);
+  FROM inputStream
+  WHERE M(A, B);
 
 #CS
-bool CheckIfNullOrEmpty(string input) {
-   return !String.IsNullOrEmpty(A);
+bool M(string x, string y) {
+   return !String.IsNullOrEmpty(x) && y == "Key1";
 }
+#ENDCS
     \end{verbatim}
 
-    \subcaption{Job running as non-native.}
+    \subcaption{Predicate invisible to optimizer.}
     \label{fig:non-native}
   \end{minipage}
 
 
-\caption{Examples of SCOPE scripts that run as native and non-native}
+\caption{Script Examples}
 \label{fig:example}
 \end{figure}
 
-On the other hand, the script in Figure~\ref{fig:non-native} is a slight variation of the query above where the user implemented the filter in a separate C\# function. Unfortunately, the SCOPE compiler treats the call to the user-defined function as a black box. As a result, the job runs in a hybrid mode where parts of the input are run natively and the rest are run in a C\# virtual machine. The resulting serialization and data-copying costs can reduce the throughput of the job by as much as XXX percent. 
+In Figure~\ref{fig:native}, the predicate in the {\tt WHERE} clause is subject to two potential optimizations:
+\begin{enumerate}
+\item The optimizer may choose to {\em promote} one (or both) of the conjuncts to an earlier part of the program, especially if either {\tt A} or {\tt B} are columns used for partitioning the data.
+This can dramatically reduce the amount of data needed to be transferred from one vertex to another.
+\item The SCOPE compiler has a set of methods that it considers to be {\em intrinsics}.
+An intrinsic is a .NET method for which the SCOPE runtime has a semantically equivalent native function.
+For instance, the method {\tt String.isNullOrEmpty} checks whether its argument is either null or else the empty string.
+The corresponding native method is able to execute on the native data encoding which does not involve creating any .NET objects or instantiating the .NET virtual machine (CLR).
+\end{enumerate}
+
+On the other hand, Figure~\ref{fig:non-native} shows a slight variation where the user implemented the predicate in a separate C\# method. Unfortunately, the SCOPE compiler treats the call to user-defined functions as a black box. As a result, both optimizations are disabled and the predicate is executed in a C\# virtual machine. The resulting serialization and data-copying costs can reduce the throughput of the job by as much as XXX percent. 
 
 
 %has a call to \emph{Split} method, which the SCOPE compiler does not understand. This causes the ent
