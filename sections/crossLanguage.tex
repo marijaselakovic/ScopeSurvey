@@ -1,5 +1,13 @@
 \section{Cross-Language Optimizations}
-
-\subsection{Optimizations Without Effects On Job Algebra}
+Cross-language optimizations can result in two different changes to the generated program that executes a query.
 
 \subsection{Optimizations With Effects On Job Algebra}
+The first changes the physical plan, i.e., the job algebra, because more information is
+made available to the query optimizer.
+For example, predicates might be pushed deeper into the DAG which can result in dramatic data reduction.
+
+
+\subsection{Optimizations Without Effects On Job Algebra}
+The second is that, for SCOPE, the set of intrinsics means that by lifting more non-relational code into the parts of the program where such things are visible to the optimizer, more code can be executed in C++ instead of in C\#.
+So even though the physical plan has not changed, the resulting program might be might more efficient since it avoids the native to managed transition.
+
