@@ -14,27 +14,45 @@ RQ:
 \subsection{Experimental Setup}
 5 data centers, time span, mention that many jobs are periodic (run usually daily or every couple of days)
 
-\begin{figure}[ht]
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrr}
 
-\caption{Table with number of jobs and total cpu time for every data center}
-\end{figure}
+  Data center & Number of jobs & CPU time \\
+ \midrule
+cosmos8 & 375,974 & 28,559,063 \\
+cosmos9 & 171,203 & 40,714,052 \\
+cosmos11 & 851,222 & 23,312,271\\
+cosmos14 & 474,911 & 21,299,039\\
+cosmos15 & 1,200,026 & 31,324,407 \\
+\midrule
+Total: & 3,073,336 & 145,208,834\\
+\midrule
+
+\end{tabular}
+ \label{tb:projects}
+ \caption{Analyzed jobs and their CPU time}
+\end{table}
+
+
+
 
 \subsection{Native vs. Non-Native Time}
 
 
 This figure illustrates how much time is spent in vertices (job stages) that run as native vs. non-native code. x axis represents each data center, while y axis gives the percentage... 
-\begin{figure}[ht]
-
-\caption{graph that shows how much time is spent in native vs. non-native job stages}
-\end{figure}
+\begin{figure*}[ht]
+\includegraphics[scale = 0.7]{graphs/proportions}
+\caption{Time spent in native vs. non-native vertices}
+\end{figure*}
 
 \subsection{Optimizable Job Stages}
 
 This figure illustrates how much time is spent in job stages that we can optimize by inlining the user-written logic. X axis represents data center, Y axis represents precentage of time spent in inlineable job stages relative to total data center time and total time spent in non-native code.
 
 \begin{figure}[ht]
-
-\caption{Optimizable job stages}
+\includegraphics[scale=0.8]{graphs/optimizable}
+\caption{Optimizable job vertices}
 \end{figure}
 
 \subsection{Potential for C++ Translation}
@@ -42,20 +60,49 @@ This figure illustrates how much time is spent in job stages that we can optimiz
 The following figure shows how much time can be affected by extending the list of functions that have C++ implementations. X axis represents data center, Y axis precentage of time spent in job stages that can be optimized, relative to total non-native and data center time.
 
 \begin{figure}[ht]
+\includegraphics[scale=0.8]{graphs/potentiallyOptimizable}
 
-\caption{Potentially optimizable job stages}
+\caption{Potentially optimizable job vertices}
 \end{figure}
 
 \subsubsection{Most Relevant .NET Framework Methods}
 
 Ranking criteria: cost of job stage
+\begin{table*}[ht]
+\small
+ \begin{tabular}{@{}llllp{3.5cm}@{}}
+
+  Cosmos8 & Cosmos9 & Cosmos11 & Cosmos14 & Cosmos15 \\
+ \midrule
+System.Convert.ToInt64 & \textbf{System.String.Equals} & System.String.Replace & \textbf{System.DateTime.ToString} & \textbf{System.String.ToLower} \\
+System.Int32.Parse & \textbf{System.String.ToLower} & \textbf{System.String.ToLower} & System.String.IndexOf & System.String.LastIndexOf \\
+\textbf{System.String.ToLower} & System.Int32.Parse & System.String.ToUpper & System.DateTime.ToLocalTime & \textbf{System.DateTime.ToString}\\
+\textbf{System.String.Concat} & System.String.Replace & \textbf{System.String.Concat} & \textbf{System.String.ToLower} & \textbf{System.String.Concat}\\
+System.String.Replace & System.Convert.ToDateTime & System.String.Trim & System.String.ToUpper & System.Convert.ToUInt64 \\
+System.Double.Parse & System.Regex.isMatch & System.Math.Max & System.Regex.IsMatch & System.Enumerable.SelectMany \\
+System.Math.Round& System.DateTime.ToUniversalTime & \textbf{System.String.Equals} & \textbf{System.String.Equals} & System.Enumerable.Distinct \\
+System.Char.NewArr & \textbf{System.String.Concat} & System.TimeSpan.Days & \textbf{System.String.Concat} & System.String.Format \\
+System.String.ToUpper & System.TimeSpan.Days & \textbf{System.DateTime.ToString} & System.String.Trim & \textbf{System.String.Equals}\\
+System.String.Upper & System.DateTime.Subtract & System.String.ToCharArray & System.String.Split & System.String.IndexOf \\
+
+\midrule
+1.27\%\footnote{proportion relative to data center time} & 0.63\% & 1.61\% & 5.15\% & 1.8\%\\
+\midrule
+
+\end{tabular}
+ \label{tb:projects}
+\caption{Most relevant .NET Framework methods per data center}
+\end{table*}
 
 The table below shows for every data center what are the most important .NET framework methods taking into account our ranking criteria...Furthermore, it illustrates how much time would be affected by providing C++ implementation of these methods, relative to total non-native time and total data center time.
 
 \begin{figure}[ht]
-
-\caption{Most relevant .NET methods per data center}
+\includegraphics{graphs/methodTypes}
+\caption{Relevance of .NET framework method types}
+\label{fig:methodTypes}
 \end{figure}
+
+
 
 
 
