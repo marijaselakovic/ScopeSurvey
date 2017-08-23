@@ -9,7 +9,8 @@ The relational aspect is crucial: it is what enables the automatic parallelizati
 Big data systems assume that the non-relational part is written carefully enough so that it does not violate the assumptions needed for automatic parallelization: i.e., programmers must write their non-relational logic to be deterministic and insensitive to the ordering of the input.
 
 However, these systems are known to lag far behind traditional database systems in runtime efficiency~\cite{Jahani:2011,Pavlo:2009}, primarily because of the flexibility of the programming model they support. For instance,  a key bottleneck in Spark is neither the disk nor the network, but the time spent by the CPU on compression/decompression of data, serialization/deserialization of the input into/from Java objects, and the JVM garbage collection~\cite{ousterhout-nsdi15}. SCOPE,  described more fully in Section~\ref{sec:Scope}, supports a hybrid native (C++) and C\# runtime partly to alleviate this overhead.
-However, our analysis shows that the interaction between the native and C\# runtimes still remains a significant cost in the overall system.
+Like SCOPE, Hadoop Streaming lets programmers write programs in a mix of languages\cite{hadoop_stream}. 
+Our analysis shows that this cross-language interaction (in SCOPE, between the native and C\# runtimes) is a significant cost in the overall system.  
 Equally importantly, the presence of non-relational code blocks the powerful relational optimizations implemented in these data-processing runtimes~\cite{non-relational-opt-papers}. 
 
 
