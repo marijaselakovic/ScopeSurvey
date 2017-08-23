@@ -92,44 +92,41 @@ On the other hand, Figure~\ref{fig:non-native} shows a slight variation where th
 
 %which is not optimized by the compiler and this causes entire script to run as non-native (C\# code).
 
+When facing a performance regression, a performance analyst first measures her system to understand where the bottlenecks are.  Then, she can act on those data to make her system faster.  While such an approach is well understood and easy to execute for desktop software, it becomes challenging in the context of a massive distributed system, like SCOPE.
+This paper first describes \emph{how} we built a datacenter-wide profiler so we could even start to measure application bottlenecks.
+Our new profiling infrastructure is a combination of offline static analysis of the executed code in addition to low-overhead online measurements captured by SCOPE's runtime.
+Then, the paper describes the results of our profiling of over 3 million SCOPE programs across five data centers within Microsoft.
+We find programs with non-relational code take between 45-70\% of data center CPU time.  
 
-First, we buld a profiling infrastructure based on static anlaysis of job artifacts. 
-
-Second, we do a comprehensive survey. 
-
-Then, we use the results of the survey to propose optimizations. 
-
-Finally, we evaluate. 
-
-Despite knowing the cause of inefficiencies, still the little is known about how much time SCOPE jobs spend in non-relational code and what are the opportunities to trigger more generation of native code. 
-To answer these questions, we propose a new profiling infrastructure based on static analysis of job artifacts.
-By doing this, we are able to post-analyse large amount of jobs without introducing any additional overhead.
-Except the time spent in non-relational code, our profiling approach also surveys different sources of non-relational code in SCOPE jobs.
-It returns a list of most commonly used framework methods, for which having C++ implementation would trigger more generation of native code.
+% %Despite knowing the cause of inefficiencies, still the little is known about how much time SCOPE jobs spend in non-relational code and what are the opportunities to trigger more generation of native code. 
+% To answer these questions, we propose a new profiling infrastructure based on static analysis of job artifacts.
+% By doing this, we are able to post-analyse large amount of jobs without introducing any additional overhead.
+% Except the time spent in non-relational code, our profiling approach also surveys different sources of non-relational code in SCOPE jobs.
+% It returns a list of most commonly used framework methods, for which having C++ implementation would trigger more generation of native code.
 Finally, we discuss the effects of cross-language optimization based on \emph{method inlining}. 
 The idea behind method inlining is to instead calling a method, move the logic of that method to the operator. By doing this, the compiler is able generate native code from inlined logic.
 We prove the effectiveness of such optimizations in Z case studies by optimizing K jobs from U different teams at Microsoft. 
 
-Our experimental evaluation shows that non-native code takes between 45-75\% of data center CPU time. By further increasing the list of framework functions that have native implementation we can optimize up to Z\% of data center time.
-Finally, we illustrate that performance impact of inlining jobs to run as native is statistically significant and range between A and B\%. 
+% Our experimental evaluation shows that non-native code takes between 45-75\% of data center CPU time. By further increasing the list of framework functions that have native implementation we can optimize up to Z\% of data center time.
+% Finally, we illustrate that performance impact of inlining jobs to run as native is statistically significant and range between A and B\%. 
 
-As a consequence, our findings motivate future research in at least two ways.
-First, on tools and techniques that help developers write more efficient big data jobs by avoiding unnecessary generation of non-native code. 
-Second, on compiler optimizations that automatically generate native code from the non-relational logic.
+% As a consequence, our findings motivate future research in at least two ways.
+% First, on tools and techniques that help developers write more efficient big data jobs by avoiding unnecessary generation of non-native code. 
+% Second, on compiler optimizations that automatically generate native code from the non-relational logic.
 
 
-In summary, this work contributes the following:
-\begin{itemize}
-\item \emph{Profiling infrastructure for analyzing SCOPE jobs.} 
-We present the approach for profiling data centers based on static analysis of job artifacts. 
-The approach reports time spent in relational vs non-relational code and detects different sources of non-relational code for every jobs stage. 
+% In summary, this work contributes the following:
+% \begin{itemize}
+% \item \emph{Profiling infrastructure for analyzing SCOPE jobs.} 
+% We present the approach for profiling data centers based on static analysis of job artifacts. 
+% The approach reports time spent in relational vs non-relational code and detects different sources of non-relational code for every jobs stage. 
 
-\item \emph{Reporting opporunities for cross-language optimizations.} We discuss two possible ways to enable further generation of native code. 
-First, we survey the most relevant framework functions relevant for native implementation. 
-Second, we present an analysis to find opportunities that trigger the generation of native code by \emph{inlining} user-written functions.  
+% \item \emph{Reporting opporunities for cross-language optimizations.} We discuss two possible ways to enable further generation of native code. 
+% First, we survey the most relevant framework functions relevant for native implementation. 
+% Second, we present an analysis to find opportunities that trigger the generation of native code by \emph{inlining} user-written functions.  
 
-\item \emph{Empirical evidence.} 
-We illustrate by X case studies that enabling job stage to run as native code signifcantly improve the job performance by factors Y-K.
-\end{itemize}
+% \item \emph{Empirical evidence.} 
+% We illustrate by X case studies that enabling job stage to run as native code signifcantly improve the job performance by factors Y-K.
+% \end{itemize}
 
 
