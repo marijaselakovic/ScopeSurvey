@@ -11,6 +11,21 @@ We categorized the jobs by how long they ran for: short, medium, and long.
 Because the input data for each job is not available, we needed to contact the job owners and ask them to re-run the job with a manually-inlined version of their script.
 We were able to have 12 jobs re-run by their owners.
 
+We illustrate the difference that replacing a C\# vertex with a C++ vertex can make.
+Job A is a medium-expensive job that runs daily.
+It contains one vertex that had been implemented in  C\# because of a single user-defined function.
+Inlining that one function resulted in the entire vertex being executed in C++.
+Figure~\ref{fig:CaseStudyA} shows the CPU time for that vertex over an 18 day period, the last 5 of which were with the inlined UDF.
+The values are all normalized by the average of the unoptimized execution times; the optimized version saves approximately 60\% of the execution time.
+
+For the other 11 jobs, we were not able to perform the same kind of historical study.
+Instead we have at most one execution of the optimized script.
+
+\begin{figure}[ht]
+\caption{Case Study A \label{fig:CaseStudyA}}
+\end{figure}
+
+
 \begin{itemize}
 \item Description of every optimized job
 \item Performance evaluation (methodology)
