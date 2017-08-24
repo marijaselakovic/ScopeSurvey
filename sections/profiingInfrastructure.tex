@@ -1,35 +1,42 @@
 \section{Profiling Infrastructure for Data Centers}
-This section provides details on our profiling infrastructure for data centers that run big-data jobs. Because SCOPE compiler does not provide any instrumentation facility, we chose to collect profiling data by analyzing job artifacts. The benefit of doing this is at least twofold: we can derive data for a relatively large number of jobs since we do not require re-running them, and we can also answer more complex, but interesting questions, such as which job stages run as C++ vs. C\#.
+This section provides details on our profiling infrastructure for data centers that run big-data jobs. Because the SCOPE compiler does not provide any instrumentation facility, we chose to collect profiling data by analyzing job artifacts. The benefit of doing this is at least twofold: we can derive data for a relatively large number of jobs since we do not require re-running them, and we can also answer more complex, but interesting questions, such as which job stages run as C++ vs. C\#.
+{\bf mb:[Marija, I don't understand the point about the compiler not providing any instrumentation. What do we care? We want to do historical analysis on lots of jobs, so we need stats from previous jobs. Right?]}
 
 \subsection{Scale of The Problem}
-SCOPE jobs run on a distributed computing platform, called Cosmos, designed for storing and analyzing massive data sets. Cosmos run on five clusters consisting of thousands of commodity servers~\cite{SCOPE}. Important properties of Cosmos is scalability and performance. Nowadays, it stores exabytes of data across hundreds of thousands of physical machines. Cosmos runs millions of big-data jobs every week and almost half million jobs every day. It is used by more than 10,000 developers at Microsoft running very diverse workloads and scenarios.
+Jobs run on a distributed computing platform, called Cosmos, designed for storing and analyzing massive data sets. Cosmos runs on five clusters consisting of thousands of commodity servers~\cite{SCOPE}. Cosmos is highly scalable and performant: it stores exabytes of data across hundreds of thousands of physical machines. Cosmos runs millions of big-data jobs every week and almost half million jobs every day. It is used by more than 10,000 developers at Microsoft running very diverse workloads and scenarios.
 
-Finding optimization opportunities that are applicable to such a large number of diverse jobs is a very challenging problem. To bring interesting conclusions we must ensure the scalability of our profiling infrastructure. To achieve this, the important aspect to consider is \emph{what type of information we should analyze}. In the following sections, we describe our major decisions when building infrastructure for profiling big data jobs.
+Finding optimization opportunities that are applicable to such a large number of diverse jobs is a very challenging problem.
+We can hope to find interesting conclusions only if our profiling infrastructure is scalable. To achieve this, the important aspect to consider is \emph{what type of information we should analyze}. In the following sections, we describe our major decisions when building infrastructure for profiling big data jobs.
 
 \subsection{Job Artifacts}
 \label{sec:artifacts}
 
-After execution of a SCOPE job finishes, the runtime produces several artifacts that contain code and runtime information for every job stage. Job artifacts are indefinitely stored in Cosmos repository and this section gives an overview of each artifact we use to profile data center.
+After execution of a SCOPE job finishes, the runtime produces several artifacts that contain code and runtime information for every job stage. Job artifacts are indefinitely stored within Cosmos itself in a {\em job repository}. We provide an overview of the subset of artifacts which we use to profile the data center.
+
 \paragraph{Job Algebra}
 
-Job algebra is a graph representation of the job execution plan. Job vertices are presented as outer-most nodes in a graph. Each job vertex contains all operators that run inside that vertex and an operator can be either user-defined or native. Optionally, if all operators are native, the vertex can contain \emph{nativeOnly} flag indicating that entire vertex runs as native (C++). However, it does not distinguish between native and user-defined operators.
+The job algebra is a graph representation of the job execution plan. Job vertices are presented as outer-most nodes in a graph. Each job vertex contains all operators that run inside that vertex and an operator can be either user-defined or native. Optionally, if all operators are native, the vertex can be marked with the \emph{nativeOnly} flag, indicating that the entire vertex runs as native (C++). However, it does not distinguish between native and user-defined operators.
 
 
 \paragraph{Runtime Statistics}
-Runtime statistics file provides information on execution time for every job vertex and every operator inside the vertex. However, it includes only CPU times, which we use as a primary metric of a job execution time. 
+The runtime statistics file provides information on execution time for every job vertex and every operator inside the vertex. Among other statistics it includes CPU times, which we use as the primary metric of performance.
+{\bf mb:[Should we cite that paper which says that many big data programs are cpu bound?]}
 
 %\paragraph{Binaries}
 %The job repository stores a job and all third-party projects in binary format (dll) that contains both native and managed code (.NET) with the generated assembly code.
 
 
 \paragraph{Generated C\# and C++ Code}
-SCOPE runtime generates C\# and C++ code for every job. An artifact with C++ code has for every vertex a code region containing a C++ implementation of the vertex and another code region that provides class names for every operator that runs as C\#. An artifact with C\# code includes implementations of non-native operators and user-written classes and functions defined inside the script.
+The SCOPE compiler generates both C\# and C++ code for every job.
+An artifact containing the C++ code has for every vertex a code region containing a C++ implementation of the vertex and another code region that provides class names for every operator that runs as C\#.
+An artifact containing the C\# code includes implementations of non-native operators and user-written classes and functions defined inside the script.
+Both source and binary are available for the generated code.
 
 \subsection{Static Analysis}
 
-After collecting artifacts described in Section~\ref{sec:artifacts}, we perfom static analysis to detect different sources of C\# code in every vertex of a job. This is important to understand the opportunities for optimizing job vertices through C\# to C++ translation. For instance, a vertex can run as managed code due to a single method, or more complex C\# code.
+After collecting the artifacts described in Section~\ref{sec:artifacts}, we perfom static analysis to detect different sources of C\# code in every vertex of a job. This is important to understand the opportunities for optimizing job vertices through C\# to C++ translation. For instance, a vertex can run as managed code due to only a single method call, or because of more complex C\# code.
 
-Figure~\ref{fig:analysis} gives an overview of our analysis. It has two main components: \emph{Analysis of C++ code} and \emph{Analysis of C\# code}. Each analysis performs on the granularity of a job vertex. The goal is to look for opportunities to run entire vertex as C++ code, which would remove all steps of data serialization between user and native operators within the vertex.
+Figure~\ref{fig:analysis} gives an overview of our analysis. It has two main components: \emph{Analysis of C++ code} and \emph{Analysis of C\# code}. Each analysis performs on the granularity of a job vertex. The goal is to look for opportunities to run an entire vertex as C++ code, which would remove all steps of data serialization between user and native operators within the vertex.
 
 
 \begin{figure}[ht]
@@ -89,19 +96,20 @@ We are particularly interested in the first two categories. It is not unusual ca
 The details on how we detect different sources of managed code and inlineable functions are described as follows.
 
 \subsubsection{Detecting Sources of C\# Code}
-To find .NET framework calls, it is enough to check whether a method definition comes from .NET runtime. The analysis finds user-written functions by looking for their definition inside the script or in third-party projects. Because Cosmos repository keeps only binaries of third-party projects, we further analyze only user functions for which the source code is available. It is easier to optimize these functions through inlining (as described in Section~\ref{sec:analysisUser}), because we can manually confirm the correctness of inlined code. Finally, in SCOPE, users can easily implement their own operators: extractors (for parsing and constructing rows from a file), processors and reducers (for row processing), and combiners (for processing rows from two input tables). The analysis finds user operators by checking whether a class that implements an operator inherits from one of the predefined base classes.\todo{reformulate this} We do not consider user operators for C++ translation because of \todo{elaborate on this}.
+To find .NET framework calls, it is enough to check whether a method definition comes from .NET runtime. The analysis finds user-written functions by looking for their definition inside the script or in third-party projects. Because Cosmos repository keeps only binaries of third-party projects, we further analyze only user functions for which the source code is available. It is easier to optimize these functions through inlining (as described in Section~\ref{sec:analysisUser}), because we can manually confirm the correctness of inlined code. Finally, in SCOPE, users can easily implement their own operators: extractors (for parsing and constructing rows from a file), processors and reducers (for row processing), and combiners (for processing rows from two input tables). The analysis finds user operators by checking whether a class that implements an operator inherits from one of the predefined base classes.\todo{reformulate this} We do not consider user operators for C++ translation: they generate quite complex code which would be non-trivial to translate into C++.
 
 
 \subsubsection{Analysis of User-Written Code}
 \label{sec:analysisUser}
 Inlining of a user-written function refers to moving a logic of the function to the script operator. We define \emph{inlineable} methods as follows.
 \begin{definition}[Inlineable method]
-Method $m$ is \emph{inlineable} method if it has the following properties:
+Method $m$ is \emph{inlineable} if it has the following properties:
 \begin{itemize}
 \item It contains only .NET framework calls
 \item It does not contain loops and try-catch blocks
-\item It does not contain any read or write to a variable or objects
-\item For all calls inside the method, arguments are passed by value
+\item It does not contain any assignment statements.
+\item It does not contain any references to the fields of an object.
+\item For all calls inside the method, arguments are passed by value (i.e., no {\em out} parameters or call-by-reference parameters).
 \end{itemize}
 
 
