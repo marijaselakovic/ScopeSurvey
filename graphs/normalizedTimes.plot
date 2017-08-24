@@ -1,6 +1,6 @@
 set term postscript eps noenhanced "NimbusSanL-Regu" 15 color	
 set size 0.7,0.8	
-set output 'normalizedTimes.eps'	
+set output 'normalizedTimesB.eps'	
 set xtics nomirror out	
 set style data histogram	
 set style fill solid	
@@ -13,7 +13,7 @@ set tmargin 3.5
 set nokey	
 set xlabel "Day" offset 0,0
 set ylabel "Normalized vertex time" offset 1.9	
-set yrange [0:110]		
-plot 'data4.dat' using 2:xtic(1)
+set yrange [0:160]		
+plot 'data5.dat' using 2:xtic(1)
 
 
