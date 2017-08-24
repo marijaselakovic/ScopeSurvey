@@ -11,7 +11,7 @@ set rmargin 5
 set bmargin 6	
 set tmargin 3.5	
 set nokey	
-set xlabel "Day in august" offset 0,0
+set xlabel "Day in August" offset 0,0
 set ylabel "Normalized vertex time" offset 1.9	
 set yrange [0:110]		
 plot 'data4.dat' using 2:xtic(1)

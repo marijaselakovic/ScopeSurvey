@@ -1,5 +1,5 @@
 \section{Evaluation}
-We analyze over 3,000,000 SCOPE jobs that run on five data centers at Microsoft. In summary, our experiments illustrate the following:
+We analyze over 3,000,000 SCOPE jobs over a period of several days that run on five data centers at Microsoft. In summary, our experiments illustrate the following:
 
 \begin{itemize}
 \item \emph{What is the proportion of time spent in native vs. non-native job vertices?} Between \nonNativeTimeL{} and \nonNativeTimeU \% of data center time is spent in job vertices that run managed code.
@@ -52,26 +52,41 @@ We conclude from Figure~\ref{fig:nativeVsNonNative} that time spent in non-nativ
 \label{fig:nativeVsNonNative}
 \end{figure*}
 
-\subsection{Optimizable Job Stages}
+\subsection{Optimizable Job Vertices}
 
-This figure illustrates how much time is spent in job stages that we can optimize by inlining the user-written logic. X axis represents data center, Y axis represents precentage of time spent in inlineable job stages relative to total data center time and total time spent in non-native code.
+
+We say a job vertex is \emph{optimizable} if it has as the only source of managed code inlineable methods that have only calls to intrinsics. Optimizable vertices are important because we can quantify how much data center time we can optimize considering the current list of intrinsics. Moreover, by inlining method calls, we expect an entire vertex to run as native code, which should significantly improve the vertex execution time.
+
+Figure~\ref{fig:optimizable} shows the proportion of CPU time of \emph{optimizable} vertices relative to data center time and to time spent in vertices with non-native code. We observe that with the current list of intrinsics we can optimize a relatively small proportion of data center time. For example, in cosmos9 that runs the most expensive jobs, we can optimize at most 0.01\% of data center time. The situation is slightly better in cosmos14 and cosmos15, but in these data centers, the proportion of non-native time is relatively lower compared to cosmos9.
+
+The crucial observation is that given results illustrate only the time in data centers that can be affected by inlining method calls in optimizable vertices. To measure the actual performance improvement it is necessary to rerun every optimized job. Further details on performance improvements for several jobs we optimize are given in Section~\ref{sec:caseStudy}.
 
 \begin{figure}[ht]
 \includegraphics[scale=0.8]{graphs/optimizable}
 \caption{Optimizable job vertices}
+\label{fig:optimizable}
 \end{figure}
 
 \subsection{Potential for C++ Translation}
+To motivate the importance of providing the C++ implementation for more framework methods, we measure how much time is spent in the following type of vertices:
+\begin{itemize}
+\item Vertices with .NET framework calls as the only source of managed code
+\item Vertices with .NET framework calls or calls to inlineable methods as the only source of managed code
+\end{itemize}
+We call these vertices \emph{potentially optimizable}, because they can run as native by increasing the list of intrinsics.
 
-The following figure shows how much time can be affected by extending the list of functions that have C++ implementations. X axis represents data center, Y axis precentage of time spent in job stages that can be optimized, relative to total non-native and data center time.
+Figure~\ref{fig:potentially} shows the proportion of time spent in potentially optimizable vertices relative to data center time. We measure the proportions by assuming that all .NET framework methods have C++ implementation. Results illustrate that we can optimize between \potentiallyOptimizableL{} and \potentiallyOptimizableU{} \% of data center time by just increasing the list of intrinsics. Even though \potentiallyOptimizableL{} \% of time spent in cosmos9 looks relatively low, it counts for almost 407,140 CPU hours for a period of several days. Knowing this type of impact motivates the future work on enabling more C++ translation of framework methods.
 
 \begin{figure}[ht]
 \includegraphics[scale=0.8]{graphs/potentiallyOptimizable}
 
 \caption{Potentially optimizable job vertices}
+\label{fig:potentially}
 \end{figure}
 
-\subsubsection{Most Relevant .NET Framework Methods}
+\paragraph{Most Relevant .NET Framework Methods}
+Assuming that all .NET framework methods can become intrinsics is unrealistics. To provide more insingths on the framework methods that actually matter, we perfom two types of study: study of the most important methods considering the time spent in potentially optimizable vertices and the study of the most important method types. The rational for second study is to 
+
 
 Ranking criteria: cost of job stage
 \begin{table*}[ht]
