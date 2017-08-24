@@ -1,24 +1,26 @@
 \section{Evaluation}
-Before evaluation we should introduce the notion of inlining...
-RQ:
-\begin{itemize}
-\item \emph{What is the proportion of time spent in native vs. non-native job vertices?}
+We analyze over 3,000,000 SCOPE jobs that run on five data centers at Microsoft. In summary, our experiments illustrate the following:
 
-\item \emph{What proportion of time can be optimized having the current list of methods with C++ implementation?}
+\begin{itemize}
+\item \emph{What is the proportion of time spent in native vs. non-native job vertices?} Between \nonNativeTimeL{} and \nonNativeTimeU \% of data center time is spent in job vertices that run managed code.
+
+\item \emph{What proportion of time can be optimized having the current list of methods with C++ implementation?} With the current list of intrinsicable methods we can optimize up to \optimizableU{} \% of data center time.
 
 \item \emph{What proportion of time can be optimized by extending the list of methods with C++ implementation? Which methods should be the most important for C++ implementation?}
+By increasing the list of intrinsics and optimizing all inlineable methods we can optimize up to \potentiallyOptimizableU{} \% of data center time. Furthermore, we conclude that \emph{String} methods are the most important .NET framework methods amenable for C++ implementations.
 
 
 \end{itemize}
 
 \subsection{Experimental Setup}
-5 data centers, time span, mention that many jobs are periodic (run usually daily or every couple of days)
+To understand performance bottlenecks in SCOPE jobs we analyze over 3,000,000 jobs across 5 data centers. Table~\ref{tb:projects} lists for every data center, the number of analyzed jobs along with their CPU time measured in hours. We observe that number of jobs and CPU time significantly vary between data centers. For example, data center \emph{cosmos15} run the highest proportion of jobs we analyze, while \emph{cosmos9} run the most expensive jobs. This is expected because different data centers are usually tailored for different types of jobs. 
+
 
 \begin{table}[ht]
 \centering
 \begin{tabular}{lrr}
 
-  Data center & Number of jobs & CPU time \\
+  Data center & Number of jobs & CPU time (in hours) \\
  \midrule
 cosmos8 & 375,974 & 28,559,063 \\
 cosmos9 & 171,203 & 40,714,052 \\
@@ -38,12 +40,16 @@ Total: & 3,073,336 & 145,208,834\\
 
 
 \subsection{Native vs. Non-Native Time}
+Before optimizing non-relational logic in SCOPE jobs, it is important to understand how much time is spent in job vertices that run non-relational code. The analysis of C++ code returns for every job vertex whether it runs as native or managed code. Combined with data from \emph{Runtime Statistics} we also find how much time is taken by every job vertex.
 
+Figure~\ref{fig:nativeVsNonNative} illustrates our results. It shows for every data center how much time is spent in native and non-native vertices. Grey area denotes few exceptional vertices for which the analysis can not certainly distinguish the code that runs inside a vertex. For example, sometimes the analysis does not detect any source of managed code in a vertex that supposedly runs C\# code. The time of such vertices we assign to gray area.
 
-This figure illustrates how much time is spent in vertices (job stages) that run as native vs. non-native code. x axis represents each data center, while y axis gives the percentage... 
+We conclude from Figure~\ref{fig:nativeVsNonNative} that time spent in non-native code represents a large fraction of data center time. For example, in cosmos9, the time spent in native vertices contributes to only 21.30\% of data center time. These results illustrate the potential of optimizing the non-relational code and it influence on data center time.
+
 \begin{figure*}[ht]
 \includegraphics[scale = 0.7]{graphs/proportions}
 \caption{Time spent in native vs. non-native vertices}
+\label{fig:nativeVsNonNative}
 \end{figure*}
 
 \subsection{Optimizable Job Stages}
