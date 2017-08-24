@@ -6,10 +6,11 @@ Large-scale data-processing frameworks, such as MapReduce~\cite{MapReduce}, SCOP
 %To ease the use of MapReduce, several projects (Apache Pig, Apache Hive or SCOPE) provide high-level declarative interfaces on top of the MapReduce framework. 
 %This means that big data processing jobs are composed of queries expressed in an SQL-like declarative language with expressions written in languages like Java, C\# or Scala.
 The relational aspect is crucial: it is what enables the automatic parallelization for efficiently scaling out to arbitrary amounts of data.
-Big data systems assume that the non-relational part is written carefully enough so that it does not violate the assumptions needed for automatic parallelization: i.e., programmers must write their non-relational logic to be deterministic and insensitive to the ordering of the input.
+Big data systems assume that the non-relational part is written carefully enough so that it does not violate the assumptions needed for automatic parallelization: e.g., programmers must write their non-relational logic to be deterministic and insensitive to the ordering of the input.
 
 However, these systems are known to lag far behind traditional database systems in runtime efficiency~\cite{Jahani:2011,Pavlo:2009}, primarily because of the flexibility of the programming model they support. For instance,  a key bottleneck in Spark is neither the disk nor the network, but the time spent by the CPU on compression/decompression of data, serialization/deserialization of the input into/from Java objects, and the JVM garbage collection~\cite{ousterhout-nsdi15}. SCOPE,  described more fully in Section~\ref{sec:Scope}, supports a hybrid native (C++) and C\# runtime partly to alleviate this overhead.
-However, our analysis shows that the interaction between the native and C\# runtimes still remains a significant cost in the overall system.
+Like SCOPE, Hadoop Streaming lets programmers write programs in a mix of languages\cite{hadoop_stream}. 
+Our analysis shows that this cross-language interaction (in SCOPE, between the native and C\# runtimes) is a significant cost in the overall system.  
 Equally importantly, the presence of non-relational code blocks the powerful relational optimizations implemented in these data-processing runtimes~\cite{non-relational-opt-papers}. 
 
 
@@ -80,7 +81,7 @@ This can dramatically reduce the amount of data needed to be transferred from on
 \item The SCOPE compiler has a set of methods that it considers to be {\em intrinsics}.
 An intrinsic is a .NET method for which the SCOPE runtime has a semantically equivalent native function.
 For instance, the method {\tt String.isNullOrEmpty} checks whether its argument is either null or else the empty string.
-The corresponding native method is able to execute on the native data encoding which does not involve creating any .NET objects or instantiating the .NET virtual machine (CLR).
+The corresponding native method is able to execute on the native data encoding which does not involve creating any .NET objects or instantiating the {\em CLR}, i.e., the .NET virtual machine.
 \end{enumerate}
 
 On the other hand, Figure~\ref{fig:non-native} shows a slight variation where the user implemented the predicate in a separate C\# method. Unfortunately, the SCOPE compiler treats the call to user-defined functions as a black box. As a result, both optimizations are disabled and the predicate is executed in a C\# virtual machine. The resulting serialization and data-copying costs can reduce the throughput of the job by as much as XXX percent. 
@@ -91,44 +92,41 @@ On the other hand, Figure~\ref{fig:non-native} shows a slight variation where th
 
 %which is not optimized by the compiler and this causes entire script to run as non-native (C\# code).
 
+When facing a performance regression, a performance analyst first measures her system to understand where the bottlenecks are.  Then, she can act on those data to make her system faster.  While such an approach is well understood and easy to execute for desktop software, it becomes challenging in the context of a massive distributed system, like SCOPE.
+This paper first describes \emph{how} we built a datacenter-wide profiler so we could even start to measure application bottlenecks.
+Our new profiling infrastructure is a combination of offline static analysis of the executed code in addition to low-overhead online measurements captured by SCOPE's runtime.
+Then, the paper describes the results of our profiling of over 3 million SCOPE programs across five data centers within Microsoft.
+We find programs with non-relational code take between 45-70\% of data center CPU time.  
 
-First, we buld a profiling infrastructure based on static anlaysis of job artifacts. 
-
-Second, we do a comprehensive survey. 
-
-Then, we use the results of the survey to propose optimizations. 
-
-Finally, we evaluate. 
-
-Despite knowing the cause of inefficiencies, still the little is known about how much time SCOPE jobs spend in non-relational code and what are the opportunities to trigger more generation of native code. 
-To answer these questions, we propose a new profiling infrastructure based on static analysis of job artifacts.
-By doing this, we are able to post-analyse large amount of jobs without introducing any additional overhead.
-Except the time spent in non-relational code, our profiling approach also surveys different sources of non-relational code in SCOPE jobs.
-It returns a list of most commonly used framework methods, for which having C++ implementation would trigger more generation of native code.
+% %Despite knowing the cause of inefficiencies, still the little is known about how much time SCOPE jobs spend in non-relational code and what are the opportunities to trigger more generation of native code. 
+% To answer these questions, we propose a new profiling infrastructure based on static analysis of job artifacts.
+% By doing this, we are able to post-analyse large amount of jobs without introducing any additional overhead.
+% Except the time spent in non-relational code, our profiling approach also surveys different sources of non-relational code in SCOPE jobs.
+% It returns a list of most commonly used framework methods, for which having C++ implementation would trigger more generation of native code.
 Finally, we discuss the effects of cross-language optimization based on \emph{method inlining}. 
-The idea behind method inlining is to instead calling a method, move the logic of that method to the operator. By doing this, the compiler is able generate native code from inlined logic.
+By inlining a method call, the compiler/optimizer is now aware of the logic contained in the body of the method. 
 We prove the effectiveness of such optimizations in Z case studies by optimizing K jobs from U different teams at Microsoft. 
 
-Our experimental evaluation shows that non-native code takes between 45-75\% of data center CPU time. By further increasing the list of framework functions that have native implementation we can optimize up to Z\% of data center time.
-Finally, we illustrate that performance impact of inlining jobs to run as native is statistically significant and range between A and B\%. 
+% Our experimental evaluation shows that non-native code takes between 45-75\% of data center CPU time. By further increasing the list of framework functions that have native implementation we can optimize up to Z\% of data center time.
+% Finally, we illustrate that performance impact of inlining jobs to run as native is statistically significant and range between A and B\%. 
 
-As a consequence, our findings motivate future research in at least two ways.
-First, on tools and techniques that help developers write more efficient big data jobs by avoiding unnecessary generation of non-native code. 
-Second, on compiler optimizations that automatically generate native code from the non-relational logic.
+% As a consequence, our findings motivate future research in at least two ways.
+% First, on tools and techniques that help developers write more efficient big data jobs by avoiding unnecessary generation of non-native code. 
+% Second, on compiler optimizations that automatically generate native code from the non-relational logic.
 
 
-In summary, this work contributes the following:
-\begin{itemize}
-\item \emph{Profiling infrastructure for analyzing SCOPE jobs.} 
-We present the approach for profiling data centers based on static analysis of job artifacts. 
-The approach reports time spent in relational vs non-relational code and detects different sources of non-relational code for every jobs stage. 
+% In summary, this work contributes the following:
+% \begin{itemize}
+% \item \emph{Profiling infrastructure for analyzing SCOPE jobs.} 
+% We present the approach for profiling data centers based on static analysis of job artifacts. 
+% The approach reports time spent in relational vs non-relational code and detects different sources of non-relational code for every jobs stage. 
 
-\item \emph{Reporting opporunities for cross-language optimizations.} We discuss two possible ways to enable further generation of native code. 
-First, we survey the most relevant framework functions relevant for native implementation. 
-Second, we present an analysis to find opportunities that trigger the generation of native code by \emph{inlining} user-written functions.  
+% \item \emph{Reporting opporunities for cross-language optimizations.} We discuss two possible ways to enable further generation of native code. 
+% First, we survey the most relevant framework functions relevant for native implementation. 
+% Second, we present an analysis to find opportunities that trigger the generation of native code by \emph{inlining} user-written functions.  
 
-\item \emph{Empirical evidence.} 
-We illustrate by X case studies that enabling job stage to run as native code signifcantly improve the job performance by factors Y-K.
-\end{itemize}
+% \item \emph{Empirical evidence.} 
+% We illustrate by X case studies that enabling job stage to run as native code signifcantly improve the job performance by factors Y-K.
+% \end{itemize}
 
 

@@ -2,26 +2,27 @@
 
 SCOPE \cite{} is used internally within Microsoft and is now transitioning into an external offering as U-SQL \cite{}.
 Its relational part is very similar to SQL, enough so that we will ignore any differences.
-The non-relational part is C\#~\cite{}: all expressions in a SCOPE program {\it script} are written as C\# expressions.
+The non-relational part is C\#~\cite{}: all expressions in a script are written as C\# expressions.
 In addition, SCOPE allows user-defined functions, {\em UDFs}, and user-defined operators, {\em UDOs}.
 
 \subsection{Execution of a Script}
-A script defines a directed acyclic graph (DAG) where each vertex is a set of operators implemented on the same physical (or virtual) machine. We use the term {\it node} for the physical or virtual machine that a vertex is implemented on.
+A script is implemented as a directed acyclic graph (DAG) where each vertex is a set of operators implemented on the same physical (or virtual) machine. We use the term {\it node} for the physical or virtual machine that a vertex is implemented on.
 The edges of the DAG are communication channels that use a high-speed communication network between nodes.
 The operators within a vertex are the end product of a very sophisticated optimizer \cite{}; expressions written within a certain construct in the script may end up being executed in vertices that do not correspond to the construct in a simple manner.
-For instance, a sub-expression from a filter may be {\it promoted} into a vertex which extracts an input table from a data source, whereas the rest of the filter may be in a vertex that is many edges distant from the input layer.
+For instance, a sub-expression from a {\tt WHERE} clause, {\em filter}, may be {\it promoted} into a vertex which extracts an input table from a data source, whereas the rest of the filter may be in a vertex that is many edges distant from the input layer.
+An execution of a script is called a {\em job}.
 
 \subsection{C++ vs. C\#}
-The SCOPE compiler generates both C++ and C\# operators for the same source-level construct.
+The SCOPE compiler attempts to generate both C++ and C\# operators for the same source-level construct.
 Each operator, however, must execute either entirely in C\# or C++: mixed code is not provided for.
 Thus, when possible, the C++ operator is preferred because the data layout in stored data uses C++ data structures.
 Thus, for example, a simple projection of a subset of the columns can be done entirely
 without using the CLR.
-But when a script contains a C\# expression that cannot be converted to a C++ function, such as in Figure~\ref{fig:non-native}, the CLR must be started, each row in the input table must be converted to a C\# representation, i.e., a C\# object representing the row must be created, and then the C\# expression can be evaluated in the .NET Runtime.
+But when a script contains a C\# expression that cannot be converted to a C++ function, such as in Figure~\ref{fig:non-native}, the CLR must be started, each row in the input table must be converted to a C\# representation, i.e., a C\# object representing the row must be created, and then the C\# expression can be evaluated in the CLR.
 
 Because this can be inefficient, the SCOPE runtime contains C++ functions that are semantically equivalent to a subset of the .NET Framework methods that are frequently used; these are called {\it intrinsics}.
 The SCOPE compiler then emit calls to the (C++) intrinsics in the C++ generated operator, which is then used at runtime in preference to the C\# generated operator.
-(As opposed to using {\it interop} to execute native code from within the .NET Runtime.)
+(As opposed to using {\it interop} to execute native code from within the CLR.)
 
 \subsection{Compiler/Optimizer Communication}
 In general, the C\# code is compiled as a black box: no analysis/optimization is peformed at this level.
