@@ -1,19 +1,28 @@
 \section{Evaluation}
-We analyze over 3,000,000 SCOPE jobs over a period of several days that run on five data centers at Microsoft. In summary, our experiments illustrate the following:
+We analyze over 3,000,000 SCOPE jobs over a period of several days that run on five data centers at Microsoft. 
+In summary, our experiments illustrate the following:
 
 \begin{itemize}
-\item \emph{What is the proportion of time spent in native vs. non-native job vertices?} Between \nonNativeTimeL{} and \nonNativeTimeU \% of data center time is spent in job vertices that run managed code.
+\item \emph{What is the proportion of time spent in native vs. non-native job vertices?}
+Between \nonNativeTimeL{} and \nonNativeTimeU \% of data center time is spent in job vertices that run managed code.
 
-\item \emph{What proportion of time can be optimized having the current list of methods with C++ implementation?} With the current list of intrinsicable methods we can optimize up to \optimizableU{} \% of data center time.
+\item \emph{What proportion of time can be optimized having the current list of methods with C++ implementation?} 
+With the current list of intrinsicable methods we can optimize up to \optimizableU{} \% of data center time.
 
-\item \emph{What proportion of time can be optimized by extending the list of methods with C++ implementation? Which methods should be the most important for C++ implementation?}
-By increasing the list of intrinsics and optimizing all inlineable methods we can optimize up to \potentiallyOptimizableU{} \% of data center time. Furthermore, we conclude that \emph{String} methods are the most important .NET framework methods amenable for C++ implementations.
+\item \emph{What proportion of time can be optimized by extending the list of methods with C++ implementation? 
+Which methods should be the most important for C++ implementation?}
+By increasing the list of intrinsics and optimizing all inlineable methods we can optimize up to \potentiallyOptimizableU{} \% of data center time. 
+Furthermore, we conclude that \emph{String} methods are the most important .NET framework methods amenable for C++ implementations.
 
 
 \end{itemize}
 
 \subsection{Experimental Setup}
-To understand performance bottlenecks in SCOPE jobs we analyze over 3,000,000 jobs across 5 data centers. Table~\ref{tb:projects} lists for every data center, the number of analyzed jobs along with their CPU time measured in hours. We observe that number of jobs and CPU time significantly vary between data centers. For example, data center \emph{cosmos15} run the highest proportion of jobs we analyze, while \emph{cosmos9} run the most expensive jobs. This is expected because different data centers are usually tailored for different types of jobs. 
+To understand performance bottlenecks in SCOPE jobs we analyze over 3,000,000 jobs across 5 data centers.
+Table~\ref{tb:projects} lists for every data center, the number of analyzed jobs along with their CPU time measured in hours.
+We observe that number of jobs and CPU time significantly vary between data centers. 
+For example, data center \emph{cosmos15} run the highest proportion of jobs we analyze, while \emph{cosmos9} run the most expensive jobs. 
+This is expected because different data centers are usually tailored for different types of jobs. 
 
 
 \begin{table}[ht]
@@ -40,11 +49,19 @@ Total: & 3,073,336 & 145,208,834\\
 
 
 \subsection{Native vs. Non-Native Time}
-Before optimizing non-relational logic in SCOPE jobs, it is important to understand how much time is spent in job vertices that run non-relational code. The analysis of C++ code returns for every job vertex whether it runs as native or managed code. Combined with data from \emph{Runtime Statistics} we also find how much time is taken by every job vertex.
+Before optimizing non-relational logic in SCOPE jobs, it is important to understand how much time is spent in job vertices that run non-relational code. 
+The analysis of C++ code returns for every job vertex whether it runs as native or managed code. 
+Combined with data from \emph{Runtime Statistics} we also find how much time is taken by every job vertex.
 
-Figure~\ref{fig:nativeVsNonNative} illustrates our results. It shows for every data center how much time is spent in native and non-native vertices. Grey area denotes few exceptional vertices for which the analysis can not certainly distinguish the code that runs inside a vertex. For example, sometimes the analysis does not detect any source of managed code in a vertex that supposedly runs C\# code. The time of such vertices we assign to gray area.
+Figure~\ref{fig:nativeVsNonNative} illustrates our results.
+It shows for every data center how much time is spent in native and non-native vertices. 
+Grey area denotes few exceptional vertices for which the analysis can not certainly distinguish the code that runs inside a vertex. 
+For example, sometimes the analysis does not detect any source of managed code in a vertex that supposedly runs C\# code. 
+The time of such vertices we assign to gray area.
 
-We conclude from Figure~\ref{fig:nativeVsNonNative} that time spent in non-native code represents a large fraction of data center time. For example, in cosmos9, the time spent in native vertices contributes to only 21.30\% of data center time. These results illustrate the potential of optimizing the non-relational code and it influence on data center time.
+We conclude from Figure~\ref{fig:nativeVsNonNative} that time spent in non-native code represents a large fraction of data center time.
+For example, in cosmos9, the time spent in native vertices contributes to only 21.30\% of data center time. 
+These results illustrate the potential of optimizing the non-relational code and it influence on data center time.
 
 \begin{figure*}[ht]
 \includegraphics[scale = 0.7]{graphs/proportions}
@@ -55,11 +72,18 @@ We conclude from Figure~\ref{fig:nativeVsNonNative} that time spent in non-nativ
 \subsection{Optimizable Job Vertices}
 
 
-We say a job vertex is \emph{optimizable} if it has as the only source of managed code inlineable methods that have only calls to intrinsics. Optimizable vertices are important because we can quantify how much data center time we can optimize considering the current list of intrinsics. Moreover, by inlining method calls, we expect an entire vertex to run as native code, which should significantly improve the vertex execution time.
+We say a job vertex is \emph{optimizable} if it has as the only source of managed code inlineable methods that have only calls to intrinsics. 
+Optimizable vertices are important because we can quantify how much data center time we can optimize considering the current list of intrinsics. 
+Moreover, by inlining method calls, we expect an entire vertex to run as native code, which should significantly improve the vertex execution time.
 
-Figure~\ref{fig:optimizable} shows the proportion of CPU time of \emph{optimizable} vertices relative to data center time and to time spent in vertices with non-native code. We observe that with the current list of intrinsics we can optimize a relatively small proportion of data center time. For example, in cosmos9 that runs the most expensive jobs, we can optimize at most 0.01\% of data center time. The situation is slightly better in cosmos14 and cosmos15, but in these data centers, the proportion of non-native time is relatively lower compared to cosmos9.
+Figure~\ref{fig:optimizable} shows the proportion of CPU time of \emph{optimizable} vertices relative to data center time and to time spent in vertices with non-native code. 
+We observe that with the current list of intrinsics we can optimize a relatively small proportion of data center time. 
+For example, in cosmos9 that runs the most expensive jobs, we can optimize at most 0.01\% of data center time. 
+The situation is slightly better in cosmos14 and cosmos15, but in these data centers, the proportion of non-native time is relatively lower compared to cosmos9.
 
-The crucial observation is that given results illustrate only the time in data centers that can be affected by inlining method calls in optimizable vertices. To measure the actual performance improvement it is necessary to rerun every optimized job. Further details on performance improvements for several jobs we optimize are given in Section~\ref{sec:caseStudy}.
+The crucial observation is that given results illustrate only the time in data centers that can be affected by inlining method calls in optimizable vertices. 
+To measure the actual performance improvement it is necessary to rerun every optimized job. 
+Further details on performance improvements for several jobs we optimize are given in Section~\ref{sec:caseStudy}.
 
 \begin{figure}[ht]
 \includegraphics[scale=0.8]{graphs/optimizable}
@@ -75,7 +99,11 @@ To motivate the importance of providing the C++ implementation for more framewor
 \end{itemize}
 We call these vertices \emph{potentially optimizable}, because they can run as native by increasing the list of intrinsics.
 
-Figure~\ref{fig:potentially} shows the proportion of time spent in potentially optimizable vertices relative to data center time. We measure the proportions by assuming that all .NET framework methods have C++ implementation. Results illustrate that we can optimize between \potentiallyOptimizableL{} and \potentiallyOptimizableU{} \% of data center time by just increasing the list of intrinsics. Even though \potentiallyOptimizableL{} \% of time spent in cosmos9 looks relatively low, it counts for almost 407,140 CPU hours for a period of several days. Knowing this type of impact motivates the future work on enabling more C++ translation of framework methods.
+Figure~\ref{fig:potentially} shows the proportion of time spent in potentially optimizable vertices relative to data center time. 
+We measure the proportions by assuming that all .NET framework methods have C++ implementation.
+Results illustrate that we can optimize between \potentiallyOptimizableL{} and \potentiallyOptimizableU{} \% of data center time by just increasing the list of intrinsics. 
+Even though \potentiallyOptimizableL{} \% of time spent in cosmos9 looks relatively low, it counts for almost 407,140 CPU hours for a period of several days. 
+Knowing this type of impact motivates the future work on enabling more C++ translation of framework methods.
 
 \begin{figure}[ht]
 \includegraphics[scale=0.8]{graphs/potentiallyOptimizable}
@@ -84,11 +112,18 @@ Figure~\ref{fig:potentially} shows the proportion of time spent in potentially o
 \label{fig:potentially}
 \end{figure}
 
-\paragraph{Most Relevant .NET Framework Methods}
-Assuming that all .NET framework methods can become intrinsics is unrealistics. To provide more insingths on the framework methods that actually matter, we perfom two types of study: study of the most important methods considering the time spent in potentially optimizable vertices and the study of the most important method types. The rational for second study is to 
+\subsubsection{Most Relevant .NET Framework Methods}
+Assuming that all .NET framework methods have C++ implementation is unrealistic. 
+To provide more insights on the framework methods that actually matter, we perform two types of study:
+the study of the most relevant methods considering the execution time of a vertex and the study of the most important method types. 
 
+For the first study, we take all .NET framework methods called in potentially optimizable vertices and rank them based on the vertex execution time. 
+Table~\ref{tb:rankedMethods} shows for every data center ten most important framework methods. 
+The last raw further illustrates how much data center time can be optimized if all methods in the list become intrinsics.
+We further highlight methods that appear to be relevant across many data centers.
+For example, \emph{System.String.ToLower} and \emph{System.String.Concat} are among the most relevant methods across all data centers.
+Furthermore, if the native implementation is provided for the first ten methods in cosmos14, the data center it would be enough to optimize more than 5\% of data center time.
 
-Ranking criteria: cost of job stage
 \begin{table*}[ht]
 \small
  \begin{tabular}{@{}llllp{3.5cm}@{}}
@@ -111,11 +146,10 @@ System.String.Upper & System.DateTime.Subtract & System.String.ToCharArray & Sys
 \midrule
 
 \end{tabular}
- \label{tb:projects}
-\caption{Most relevant .NET Framework methods per data center. Methods in bold are those that appear in the top 10 for at least three data centers.}
+ \label{tb:rankedMethods}
+\caption{Most relevant .NET Framework methods per data center.}
 \end{table*}
 
-The table below shows for every data center what are the most important .NET framework methods taking into account our ranking criteria...Furthermore, it illustrates how much time would be affected by providing C++ implementation of these methods, relative to total non-native time and total data center time.
 
 \begin{figure}[ht]
 \includegraphics{graphs/methodTypes}
@@ -123,7 +157,7 @@ The table below shows for every data center what are the most important .NET fra
 \label{fig:methodTypes}
 \end{figure}
 
-
+Figure~\ref{fig:methodTypes} illustrates the most important method types for data center cosmos11. The results are comparable for other data centers. \emph{String} methods dominate and they count as the only source of non-native code in  1.49\% of the time spent in potentially optimizable vertices. Other method types are significantly less relevant, but when combined they influence 1.85\% of the data center time. These studies show the potential for improving data center performance by providing more intrinsics and thus enabling more C++ translation.
 
 
 
