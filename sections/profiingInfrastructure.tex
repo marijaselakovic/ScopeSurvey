@@ -33,9 +33,9 @@ Both source and binary are available for the generated code.
 
 \subsection{Static Analysis}
 
-After collecting the artifacts described in Section~\ref{sec:artifacts}, we perfom static analysis to detect different sources of C\# code in every vertex of a job. This is important to understand the opportunities for optimizing job vertices through C\# to C++ translation. For instance, a vertex can run as managed code due to only a single method call, or because of more complex C\# code.
+After collecting the artifacts described in Section~\ref{sec:artifacts}, we perfom static analysis to detect different sources of C\# code in every vertex of a job. This is important to understand the opportunities for optimizing job vertices through C\# to C++ translation. For instance, an operator can run as managed code due to only a single method call, or because of more complex C\# code.
 
-Figure~\ref{fig:analysis} gives an overview of our analysis. It has two main components: \emph{Analysis of C++ code} and \emph{Analysis of C\# code}. Each analysis performs on the granularity of a job vertex. The goal is to look for opportunities to run an entire vertex as C++ code, which would remove all steps of data serialization between user and native operators within the vertex.
+Figure~\ref{fig:analysis} gives an overview of our analysis. It has two main components: \emph{Analysis of C++ code} and \emph{Analysis of C\# code}. Each analysis performs at the granularity of a job vertex. The goal is to look for opportunities to run an entire vertex as C++ code, which would remove all steps of data serialization between user and native operators within the vertex.
 
 
 \begin{figure}[ht]
@@ -81,26 +81,28 @@ shadow,minimum height=1em]
 \label{fig:analysis}
 \end{figure}
 
-The first step of the analysis is to extract names of every job vertex, which serve as unique identifiers for vertices. Then for each vertex, the analysis parses generated C++ to find the class containing the vertex implementation. As discussed in Section~\ref{sec:artifacts}, for each vertex, C++ implementation contains two code regions: one that indicates which part of a vertex runs as C++ code and another region listing class names of operators that run as C\# code. If the latter region is empty, we conclude that entire vertex runs as C++ code. The output of the first stage of our analysis is the collection of class names that contain C\# operators.
+The first step of the analysis is to extract names of every job vertex, which serve as unique identifiers for vertices. Then for each vertex, the analysis parses the generated C++ to find the class containing the vertex implementation. As discussed in Section~\ref{sec:artifacts}, for each vertex, the C++ implementation contains two code regions: one that indicates which part of a vertex runs as C++ code and another region listing class names of operators that run as C\# code. If the latter region is empty, we conclude that the entire vertex runs as C++ code. The output of the first stage of our analysis is the collection of class names that contain C\# operators.
 
-Based on the output of the previous stage, the analysis parses generated C\# code to find definitions and implementation of every class in the list. The implementation of managed operators contains two sources of C\# code: generated code, which we whitelist and skip in our analysis and the user-written code. After analyzing user code, the analysis outputs the following sources of method calls:
+Based on the output of the previous stage, the analysis parses the generated C\# code to find definitions and implementation of every class in the list. The implementation of managed operators contains two sources of C\# code: generated code, which we whitelist and skip in our analysis and the user-written code. After analyzing user code, the analysis outputs the following sources of method calls:
 \begin{itemize}
 \item .NET framework calls
 \item User written functions
 \item User written operators 
 \end{itemize}
 
-We are particularly interested in the first two categories. It is not unusual case when a vertex runs as C\# execution just because of a framework method. We want to know what are the most important framework methods to optimize to enable C++ translation for a large number of vertices. Furthermore, we observe the cases when a logic of user-written function is relatively simple, and inlining the function logic as demonstrated in Figure~\ref{fig:example} would enable generation of C++ instead of C\# code. 
+We are particularly interested in the first two categories. It is not unusual for an operator to execute as C\# just because of a single call to a framework method.
+We want to know what are the most important framework methods to optimize to enable C++ translation for a large number of vertices. Furthermore, we observe the cases when a logic of user-written function is relatively simple, and inlining the function logic as demonstrated in Figure~\ref{fig:example} would enable generation of C++ instead of C\# code. 
 
 The details on how we detect different sources of managed code and inlineable functions are described as follows.
 
 \subsubsection{Detecting Sources of C\# Code}
-To find .NET framework calls, it is enough to check whether a method definition comes from .NET runtime. The analysis finds user-written functions by looking for their definition inside the script or in third-party projects. Because Cosmos repository keeps only binaries of third-party projects, we further analyze only user functions for which the source code is available. It is easier to optimize these functions through inlining (as described in Section~\ref{sec:analysisUser}), because we can manually confirm the correctness of inlined code. Finally, in SCOPE, users can easily implement their own operators: extractors (for parsing and constructing rows from a file), processors and reducers (for row processing), and combiners (for processing rows from two input tables). The analysis finds user operators by checking the interface the class implements. We do not consider user operators for C++ translation: they generate quite complex code which would be non-trivial to translate into C++.
+To find .NET framework calls, it is enough to check whether a method definition comes from one of a small set of the core binaries in the .NET runtime. The analysis finds user-written functions by looking for their definition inside the script or in third-party binaries. Because the job repository keeps only binaries of third-party projects, we further analyze only user functions for which the source code is available. It is easier to optimize these functions through inlining (as described in Section~\ref{sec:analysisUser}), because we can manually confirm the correctness of inlined code. Finally, in SCOPE, users can easily implement their own operators: extractors (for parsing and constructing rows from a file), processors and reducers (for row processing), and combiners (for processing rows from two input tables). The analysis finds user operators by checking the interface the class implements. We do not consider user operators for C++ translation: they generate quite complex code which would be non-trivial to translate into C++.
 
 
 \subsubsection{Analysis of User-Written Code}
 \label{sec:analysisUser}
-Inlining of a user-written function refers to moving a logic of the function to the script operator. We define \emph{inlineable} methods as follows.
+Inlining of a user-written function refers, per the standard definition, to replacing the call to the function in the script with the body of the function.
+We define \emph{inlineable} methods as follows.
 \begin{definition}[Inlineable method]
 Method $m$ is \emph{inlineable} if it has the following properties:
 \begin{itemize}
@@ -110,8 +112,6 @@ Method $m$ is \emph{inlineable} if it has the following properties:
 \item It does not contain any references to the fields of an object.
 \item For all calls inside the method, arguments are passed by value (i.e., no {\em out} parameters or call-by-reference parameters).
 \end{itemize}
-
-
 \end{definition}
 
 Furthermore, we distinguish among inlineable methods those that allow for \emph{instant} C++ generation, because all called .NET framework methods are \emph{intrinsics}. However, the analysis of other inlineable functions is important, because it provides the intuition on how many vertices are potentially optimizable in this way.
