@@ -1,5 +1,5 @@
 \section{Evaluation}
-We analyze over 3,000,000 SCOPE jobs over a period of several days that run on five data centers at Microsoft. 
+We analyze over 3,000,000 SCOPE jobs over a period of five days that run on five data centers at Microsoft. 
 In summary, our experiments illustrate the following:
 
 \begin{itemize}
@@ -24,10 +24,10 @@ We observe that number of jobs and CPU time significantly vary between data cent
 For example, data center \emph{cosmos15} run the highest proportion of jobs we analyze, while \emph{cosmos9} run the most expensive jobs. 
 This is expected because different data centers are usually tailored for different types of jobs. 
 
+
 \begin{table}[ht]
 \centering
 \begin{tabular}{lrr}
-
   Data center & Number of jobs & CPU time (in hours) \\
  \midrule
 cosmos8 & 375,974 & 28,559,063 \\
@@ -38,36 +38,53 @@ cosmos15 & 1,200,026 & 31,324,407 \\
 \midrule
 Total: & 3,073,336 & 145,208,834\\
 \midrule
-
 \end{tabular}
- 
  \caption{Analyzed jobs and their CPU time
- \label{tb:projects}}
+\label{tb:projects}}
 \end{table}
 
-
+The table shows that the jobs take a significant amount of resources. 
+While we do not have access to the actual cost of these jobs, a very conservative estimate is to use $0.6$ cents an hour, the cost of the cheapest Amazon EC2 instance~\footnote{as of August 2017} at the time of writing. 
+Given that most of these jobs run recurrently every day (some every hour), extrapolating these costs amounts to over $650$ million dollars per year. 
+Thus, even a $1$\% performance improvement on these jobs will result in significant performance savings. 
 
 
 \subsection{Native vs. Non-Native Time}
-Before optimizing non-relational logic in SCOPE jobs, it is important to understand how much time is spent in job vertices that run non-relational code. 
-The analysis of C++ code returns for every job vertex whether it runs as native or managed code. 
-Combined with data from \emph{Runtime Statistics} we also find how much time is taken by every job vertex.
-
-Figure~\ref{fig:nativeVsNonNative} illustrates our results.
-It shows for every data center how much time is spent in native and non-native vertices. 
-Grey area denotes few exceptional vertices for which the analysis can not certainly distinguish the code that runs inside a vertex. 
-For example, sometimes the analysis does not detect any source of managed code in a vertex that supposedly runs C\# code. 
-The time of such vertices we assign to gray area.
-
-We conclude from Figure~\ref{fig:nativeVsNonNative} that time spent in non-native code represents a large fraction of data center time.
-For example, in cosmos9, the time spent in native vertices contributes to only 21.30\% of data center time. 
-These results illustrate the potential of optimizing the non-relational code and it influence on data center time.
-
 \begin{figure*}[ht]
 \includegraphics[width=2\columnwidth]{graphs/proportions.pdf}
 \caption{Time spent in native vs. non-native vertices}
 \label{fig:nativeVsNonNative}
 \end{figure*}
+The first goal of our analysis is to determine the amount of time spent between native and non-native portions of SCOPE jobs. 
+As mentioned in Section~\ref{sec:nativenonnative}, SCOPE runs all of relational logic efficiently in native code, while user-defined non-relational code is run in a .NET virtual machine. 
+Apart from avoiding the inherent overheads of running in non-native mode, the relational logic has the additional advantage of using all of the traditional optimizations modern databases typically perform.
+From prior analyses, it was known that around $80$\% of the SCOPE jobs only use relational constructs and thus run purely natively. 
+Thus, at the outset, it was not obvious that non-relational optimizations would provide overall datacenter performance improvements. 
+
+
+%Before optimizing non-relational logic in SCOPE jobs, it is important to understand how much time is spent in job vertices that run non-relational code. 
+%The analysis of C++ code returns for every job vertex whether it runs as native or managed code. 
+%Combined with data from \emph{Runtime Statistics} we also find how much time is taken by every job vertex.
+
+Figure~\ref{fig:nativeVsNonNative} shows for every data center how the time spent executive native code versus non-native code. 
+For this analysis, we combined the time taken by every job vertex from \emph{Runtime Statistics} with additional analysis of C++ code that determines whether each operator within a vertex is run in native or non-native mode. 
+Our analysis of the C++ code is conservative and reports an operator as running in non-native mode only if the analysis is able to detect the source of the managed C\# code or managed dll. 
+Due to this conservative analysis, we tag some vertices as gray if the job metadata claims to include non-native operators but we are unable to detect the source. 
+Modulo bugs in the SCOPE code that generates the job metadata, these gray vertices are likely to be non-native vertices. But without improving our analysis we are unable to confirm them thus. 
+
+%much time is spent in native and non-native vertices. 
+%Grey area denotes few exceptional vertices for which the analysis can not certainly distinguish the code that runs inside a vertex. 
+%For example, sometimes the analysis does not detect any source of managed code in a vertex that supposedly runs C\# code. 
+%The time of such vertices we assign to gray area.
+
+Figure~\ref{fig:nativeVsNonNative} shows that the time spent in non-native code represents a large fraction of data center time, ranging from $43.7$\% for cosmos15 to $73.3$\% for cosmos9. 
+We can derive many conclusions from these results. First, these results could reflect the fact that the decades of work in optimizing relational code has borne fruit --- pure relational components account for a smaller percentage of datacenter runtime. Second, it could very well be the case that jobs with inherently expensive computations require logic that does not fit within the relational subset of SCOPE, and thus requires the use of non-native code. Finally,
+these results could reflect the inherent overheads of running non-native code in the context of big-data processing. Preliminary experimentation with local runs of a small number of these jobs~\footnote{we are unable to run most of the jobs locally as we do not have access to the data due to privacy concerns.} shows that the presence non-relational components reduce the throughput of a job by a factor of $10\times$ or more, with the performance bottleneck being the serialization/deserialization overhead of converting data into and from C\# objects. Nevertheless, 
+these results illustrate the potential of optimizing the non-relational code and its influence on data center time.
+
+
+%For example, in cosmos9, the time spent in native <vertices contributes to only 21.30\% of data center time. 
+%T
 
 \subsection{Optimizable Job Vertices}
 
