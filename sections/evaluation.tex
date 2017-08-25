@@ -30,11 +30,11 @@ This is expected because different data centers are usually tailored for differe
 \begin{tabular}{lrr}
   Data center & Number of jobs & CPU time (in hours) \\
  \midrule
-cosmos8 & 375,974 & 28,559,063 \\
-cosmos9 & 171,203 & 40,714,052 \\
+cosmos8 & 375,974 &  28,559,063 \\
+cosmos9 & 171,203 &  40,714,052 \\
 cosmos11 & 851,222 & 23,312,271\\
 cosmos14 & 474,911 & 21,299,039\\
-cosmos15 & 1,200,026 & 31,324,407 \\
+cosmos15 & 1,200,026&31,324,407 \\
 \midrule
 Total: & 3,073,336 & 145,208,834\\
 \midrule
@@ -79,18 +79,19 @@ Modulo bugs in the SCOPE code that generates the job metadata, these gray vertic
 
 Figure~\ref{fig:nativeVsNonNative} shows that the time spent in non-native code represents a large fraction of data center time, ranging from $43.7$\% for cosmos15 to $73.3$\% for cosmos9. 
 We can derive many conclusions from these results. First, these results could reflect the fact that the decades of work in optimizing relational code has borne fruit --- pure relational components account for a smaller percentage of datacenter runtime. Second, it could very well be the case that jobs with inherently expensive computations require logic that does not fit within the relational subset of SCOPE, and thus requires the use of non-native code. Finally,
-these results could reflect the inherent overheads of running non-native code in the context of big-data processing. Preliminary experimentation with local runs of a small number of these jobs~\footnote{we are unable to run most of the jobs locally as we do not have access to the data due to privacy concerns.} shows that the presence non-relational components reduce the throughput of a job by a factor of $10\times$ or more, with the performance bottleneck being the serialization/deserialization overhead of converting data into and from C\# objects. Nevertheless, 
-these results illustrate the potential of optimizing the non-relational code and its influence on data center time.
+these results could reflect the inherent overheads of running non-native code in the context of big-data processing. 
+
+We did preliminary experimentation on a small subset of the jobs locally to study the performance bottlenecks of SCOPE jobs with managed operators. 
+Our profiles show that the presence non-relational components reduce the throughput of a job by a factor of $10\times$ or more, with the performance bottleneck being the serialization/deserialization overhead of converting data into and from C\# objects. Note that we are unable to run most of the jobs locally as accesses to the data they process is severely restricted due to privacy concerns. Thus, it is quite possible that the results from our preliminary experimentation might not be representative of the jobs that run on the datacenters. Nevertheless, conversations with the SCOPE team validated these experiments, and Figure~\ref{fig:nativeVsNonNative} shows the potential performance improvements possible by optimizing the interaction between native and non-native parts of SCOPE. 
+
 
 
 %For example, in cosmos9, the time spent in native <vertices contributes to only 21.30\% of data center time. 
 %T
 
 \subsection{Optimizable Job Vertices}
-
-
 We say a job vertex is \emph{optimizable} if it has as the only source of managed code inlineable methods that have only calls to existing intrinsics. 
-Optimizable vertices are important because we can quantify how much data center time we can optimize considering the current list of intrinsics. 
+An example of such a job is shown in Figure~\ref{fig:example}. Optimizable vertices are important because we can quantify how much data center time we can optimize considering the current list of intrinsics. 
 Moreover, by inlining method calls, we expect an entire vertex to run as native code, which should significantly improve the vertex execution time.
 
 Figure~\ref{fig:optimizable} shows the proportion of CPU time of \emph{optimizable} vertices relative to data center time and to time spent in vertices with non-native code. 
@@ -103,7 +104,7 @@ To measure the actual performance improvement it is necessary to rerun every opt
 Further details on performance improvements for several jobs we optimize are given in Section~\ref{sec:caseStudy}.
 
 \begin{figure}[ht]
-\includegraphics[scale=0.8]{graphs/optimizable}
+\includegraphics[width=\columnwidth]{graphs/optimizable.pdf}
 \caption{Optimizable job vertices}
 \label{fig:optimizable}
 \end{figure}
