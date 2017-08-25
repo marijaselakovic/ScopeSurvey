@@ -1,13 +1,13 @@
 \section{Profiling Infrastructure for Data Centers}
 Jobs run on a distributed computing platform, called Cosmos, designed for storing and analyzing massive data sets. Cosmos runs on five clusters consisting of thousands of commodity servers~\cite{SCOPE}. Cosmos is highly scalable and performant: it stores exabytes of data across hundreds of thousands of physical machines. Cosmos runs millions of big-data jobs every week and almost half million jobs every day. It is used by more than 10,000 developers at Microsoft running very diverse workloads and scenarios.
 
-Finding optimization opportunities that are applicable to such a large number of diverse jobs is a very challenging problem.
+Finding optimization opportunities that are applicable to such a large number of diverse jobs is a challenging problem.
 We can hope to find interesting conclusions only if our profiling infrastructure is scalable. To achieve this, the important aspect to consider is \emph{what type of information we should analyze}. In the following sections, we describe our major decisions when building infrastructure for profiling big data jobs.
 
 \subsection{Job Artifacts}
 \label{sec:artifacts}
 
-After execution of a SCOPE job finishes, the runtime produces several artifacts that contain code and runtime information for every job stage.
+After execution of a SCOPE job, the runtime produces several artifacts that contain code and runtime information for every job stage.
 Job artifacts are indefinitely stored within Cosmos itself in a {\em job repository}.
 This provides two benefits: we can derive data for a relatively large number of jobs since we do not require re-running them, and we can also answer more complex, but interesting questions, such as which job stages run as C++ vs. C\#.
 We provide an overview of the subset of artifacts which we use to profile the data center.
@@ -18,8 +18,7 @@ The job algebra is a graph representation of the job execution plan. Job vertice
 
 
 \paragraph{Runtime Statistics}
-The runtime statistics file provides information on execution time for every job vertex and every operator inside the vertex. Among other statistics it includes CPU times, which we use as the primary metric of performance.
-{\bf mb:[Should we cite that paper which says that many big data programs are cpu bound?]}
+The runtime statistics file provides information on execution time for every job vertex and every operator inside the vertex. Among other statistics it includes CPU times, which we use as the primary metric of performance. Big data systems process significant amounts of data but often are CPU-bound\cite{Ousterhour} due to the large overheads behind serialization and de-serialization so we measure (in addition to bytes read and written) CPU time.
 
 %\paragraph{Binaries}
 %The job repository stores a job and all third-party projects in binary format (dll) that contains both native and managed code (.NET) with the generated assembly code.

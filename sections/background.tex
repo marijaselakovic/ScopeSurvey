@@ -13,7 +13,7 @@ For instance, a sub-expression from a {\tt WHERE} clause, {\em filter}, may be {
 An execution of a script is called a {\em job}.
 
 \subsection{C++ vs. C\#}
-Much like Hadoop streaming, SCOPE jobs consist of multiple runtimes and languages.
+Much like Hadoop streaming, SCOPE jobs consist of multiple runtimes and languages and while the details of this paper are about SCOPE, the general problem is shared among many big data systems.
 The SCOPE compiler attempts to generate both C++ and C\# operators for the same source-level construct.
 Each operator, however, must execute either entirely in C\# or C++: mixed code is not provided for.
 Thus, when possible, the C++ operator is preferred because the data layout in stored data uses C++ data structures.
