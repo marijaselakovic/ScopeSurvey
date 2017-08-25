@@ -32,7 +32,8 @@ The values are normalized by the average of the unoptimized execution times; the
 
 On the other hand, Job B is similar to Job A: it is also a medium-expensive job which runs daily and contains one optimizable vertex due to a UDF.
 However, as Figure~\ref{fig:CaseStudyB} shows, the normalized vertex CPU time does not show any consistent improvement for the last five jobs.
-We believe that this is due to the high variability of the job; by all of our measures, CPU time or througput, per vetex or for the full job, Job B displays a wide range of behavior on a daily basis.
+Closer analysis of the vertex shows that the operator which had been in C\# accounted for a very tiny percentage of the execution time for the vertex.
+This is consistent with our results for Job A, where the operator had essentially been 100\% of the execution time of the vertex.
 \begin{figure}[ht]
 \includegraphics{graphs/normalizedTimesB}
 \caption{Case Study B \label{fig:CaseStudyB}}
@@ -43,13 +44,18 @@ We looked at 3 other jobs, summarized in Figure~\ref{fig:caseStudySummary}.
 One of them turned out to be a false positive, where we mistakenly thought a method was an intrinsic.
 For the other two, we were not able to perform the same kind of historical study: instead we have just one execution of the optimized script.
 \begin{figure}[ht]
-\begin{tabular}{c|c|c|c|c|c} 
-{\em Job Guid} & {\em Vertex} & {\em Job Name} & {\em Job Cost} & {\em Vertex Improvement} & {\em Job Improvement} \\ \hline
-01e72a39 & SV4\_Extract & C & low & 41.98\% & 25.00\% \\
-0414cd51 & & D & false positive \\
-f2bd0961 & SV1\_Extract\_Combine\_Split & E & high & 7.22\% & 4.79\%
+\begin{tabular}{c|c|c|c} 
+{\em Job Name} & {\em Job Cost} & {\em Vertex Change} & {\em Job Change} \\ \hline
+A & medium & 59.63\%  & 23.00\% \\
+B & medium & -13.49\% & -7.99\% \\
+C & low    & 41.98\%  & 25.00\% \\
+D & false positive & \\
+E & high   & 7.22\%   & 4.79\%
 \end{tabular}
-\caption{Summary of case studies. {\sc Delete the job guid and vertex columns before submitting!}
+\caption{Summary of case studies. The reported changes are percent improvement in CPU time.
+For Jobs A and B the numbers are averages over the a one week period.
 \label{fig:caseStudySummary}}
 \end{figure}
 
+% Job C is guid 01e72a39 and vertex SV4_Extract
+% Job E is giod f2bd0961 and SV1_Extract_Combine_Split
