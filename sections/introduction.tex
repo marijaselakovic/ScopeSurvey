@@ -76,10 +76,10 @@ bool M(string x, string y) {
 
 In Figure~\ref{fig:native}, the predicate in the {\tt WHERE} clause is subject to two potential optimizations:
 \begin{enumerate}
-\item The optimizer may choose to {\em promote} one (or both) of the conjuncts to an earlier part of the program, especially if either {\tt A} or {\tt B} are columns used for partitioning the data.
-This can dramatically reduce the amount of data needed to be transferred from one vertex to another.
+\item The optimizer may choose to {\em promote} one (or both) of the conjuncts to an earlier part of the script, especially if either {\tt A} or {\tt B} are columns used for partitioning the data.
+This can dramatically reduce the amount of data needed to be transferred across the network.
 \item The SCOPE compiler has a set of methods that it considers to be {\em intrinsics}.
-An intrinsic is a .NET method for which the SCOPE runtime has a semantically equivalent native function.
+An intrinsic is a .NET method for which the SCOPE runtime has a semantically equivalent native function, i.e., implemented in C++.
 For instance, the method {\tt String.isNullOrEmpty} checks whether its argument is either null or else the empty string.
 The corresponding native method is able to execute on the native data encoding which does not involve creating any .NET objects or instantiating the {\em CLR}, i.e., the .NET virtual machine.
 \end{enumerate}

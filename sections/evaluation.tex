@@ -19,11 +19,10 @@ Furthermore, we conclude that \emph{String} methods are the most important .NET 
 
 \subsection{Experimental Setup}
 To understand performance bottlenecks in SCOPE jobs we analyze over 3,000,000 jobs across 5 data centers.
-Table~\ref{tb:projects} lists for every data center, the number of analyzed jobs along with their CPU time measured in hours.
+Table~\ref{tb:projects} lists, for each data center, the number of analyzed jobs along with their CPU time measured in hours.
 We observe that number of jobs and CPU time significantly vary between data centers. 
 For example, data center \emph{cosmos15} run the highest proportion of jobs we analyze, while \emph{cosmos9} run the most expensive jobs. 
 This is expected because different data centers are usually tailored for different types of jobs. 
-
 
 \begin{table}[ht]
 \centering
@@ -41,8 +40,9 @@ Total: & 3,073,336 & 145,208,834\\
 \midrule
 
 \end{tabular}
- \label{tb:projects}
- \caption{Analyzed jobs and their CPU time}
+ 
+ \caption{Analyzed jobs and their CPU time
+ \label{tb:projects}}
 \end{table}
 
 
@@ -72,7 +72,7 @@ These results illustrate the potential of optimizing the non-relational code and
 \subsection{Optimizable Job Vertices}
 
 
-We say a job vertex is \emph{optimizable} if it has as the only source of managed code inlineable methods that have only calls to intrinsics. 
+We say a job vertex is \emph{optimizable} if it has as the only source of managed code inlineable methods that have only calls to existing intrinsics. 
 Optimizable vertices are important because we can quantify how much data center time we can optimize considering the current list of intrinsics. 
 Moreover, by inlining method calls, we expect an entire vertex to run as native code, which should significantly improve the vertex execution time.
 
