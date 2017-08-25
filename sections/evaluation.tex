@@ -18,11 +18,12 @@ Furthermore, we conclude that \emph{String} methods are the most important .NET 
 \end{itemize}
 
 \subsection{Experimental Setup}
-To understand performance bottlenecks in SCOPE jobs we analyze over 3,000,000 jobs across five of Microsoft's data centers.
-Table~\ref{tb:projects} lists for every data center, the number of analyzed jobs along with their CPU time measured in hours.
+To understand performance bottlenecks in SCOPE jobs we analyze over 3,000,000 jobs across 5 data centers.
+Table~\ref{tb:projects} lists, for each data center, the number of analyzed jobs along with their CPU time measured in hours.
 We observe that number of jobs and CPU time significantly vary between data centers. 
 For example, data center \emph{cosmos15} run the highest proportion of jobs we analyze, while \emph{cosmos9} run the most expensive jobs. 
-This is expected because different data centers contain different machine configurations and are usually tailored for different types of jobs. 
+This is expected because different data centers are usually tailored for different types of jobs. 
+
 
 \begin{table}[ht]
 \centering
@@ -38,7 +39,8 @@ cosmos15 & 1,200,026 & 31,324,407 \\
 Total: & 3,073,336 & 145,208,834\\
 \midrule
 \end{tabular}
-\caption{Analyzed jobs and their CPU time}\label{tb:projects}
+ \caption{Analyzed jobs and their CPU time
+\label{tb:projects}}
 \end{table}
 
 The table shows that the jobs take a significant amount of resources. 
@@ -87,7 +89,7 @@ these results illustrate the potential of optimizing the non-relational code and
 \subsection{Optimizable Job Vertices}
 
 
-We say a job vertex is \emph{optimizable} if it has as the only source of managed code inlineable methods that have only calls to intrinsics. 
+We say a job vertex is \emph{optimizable} if it has as the only source of managed code inlineable methods that have only calls to existing intrinsics. 
 Optimizable vertices are important because we can quantify how much data center time we can optimize considering the current list of intrinsics. 
 Moreover, by inlining method calls, we expect an entire vertex to run as native code, which should significantly improve the vertex execution time.
 
@@ -134,7 +136,7 @@ the study of the most relevant methods considering the execution time of a verte
 
 For the first study, we take all .NET framework methods called in potentially optimizable vertices and rank them based on the vertex execution time. 
 Table~\ref{tb:rankedMethods} shows for every data center ten most important framework methods. 
-The last raw further illustrates how much data center time can be optimized if all methods in the list become intrinsics.
+The last row further illustrates how much data center time can be optimized if all methods in the list become intrinsics.
 We further highlight methods that appear to be relevant across many data centers.
 For example, \emph{System.String.ToLower} and \emph{System.String.Concat} are among the most relevant methods across all data centers.
 Furthermore, if the native implementation is provided for the first ten methods in cosmos14, the data center it would be enough to optimize more than 5\% of data center time.
@@ -145,24 +147,25 @@ Furthermore, if the native implementation is provided for the first ten methods 
 
   Cosmos8 & Cosmos9 & Cosmos11 & Cosmos14 & Cosmos15 \\
  \midrule
-System.Convert.ToInt64 & \textbf{System.String.Equals} & System.String.Replace & \textbf{System.DateTime.ToString} & \textbf{System.String.ToLower} \\
-System.Int32.Parse & \textbf{System.String.ToLower} & \textbf{System.String.ToLower} & System.String.IndexOf & System.String.LastIndexOf \\
-\textbf{System.String.ToLower} & System.Int32.Parse & System.String.ToUpper & System.DateTime.ToLocalTime & \textbf{System.DateTime.ToString}\\
-\textbf{System.String.Concat} & System.String.Replace & \textbf{System.String.Concat} & \textbf{System.String.ToLower} & \textbf{System.String.Concat}\\
-System.String.Replace & System.Convert.ToDateTime & System.String.Trim & System.String.ToUpper & System.Convert.ToUInt64 \\
-System.Double.Parse & System.Regex.isMatch & System.Math.Max & System.Regex.IsMatch & System.Enumerable.SelectMany \\
-System.Math.Round& System.DateTime.ToUniversalTime & \textbf{System.String.Equals} & \textbf{System.String.Equals} & System.Enumerable.Distinct \\
-System.Char.NewArr & \textbf{System.String.Concat} & System.TimeSpan.Days & \textbf{System.String.Concat} & System.String.Format \\
-System.String.ToUpper & System.TimeSpan.Days & \textbf{System.DateTime.ToString} & System.String.Trim & \textbf{System.String.Equals}\\
-System.String.Upper & System.DateTime.Subtract & System.String.ToCharArray & System.String.Split & System.String.IndexOf \\
+Convert.ToInt64 & \textbf{String.Equals} & String.Replace & \textbf{DateTime.ToString} & \textbf{String.ToLower} \\
+Int32.Parse & \textbf{String.ToLower} & \textbf{String.ToLower} & String.IndexOf & String.LastIndexOf \\
+\textbf{String.ToLower} & Int32.Parse & String.ToUpper & DateTime.ToLocalTime & \textbf{DateTime.ToString}\\
+\textbf{String.Concat} & String.Replace & \textbf{String.Concat} & \textbf{String.ToLower} & \textbf{String.Concat}\\
+String.Replace & Convert.ToDateTime & String.Trim & String.ToUpper & Convert.ToUInt64 \\
+Double.Parse & Regex.isMatch & Math.Max & Regex.IsMatch & Enumerable.SelectMany \\
+Math.Round& DateTime.ToUniversalTime & \textbf{String.Equals} & \textbf{String.Equals} & Enumerable.Distinct \\
+Char.NewArr & \textbf{String.Concat} & TimeSpan.Days & \textbf{String.Concat} & String.Format \\
+String.ToUpper & TimeSpan.Days & \textbf{DateTime.ToString} & String.Trim & \textbf{Syst.String.Equals}\\
+String.Upper & DateTime.Subtract & String.ToCharArray & String.Split & String.IndexOf \\
 
 \midrule
 1.27\%\footnote{proportion relative to data center time} & 0.63\% & 1.61\% & 5.15\% & 1.8\%\\
 \midrule
 
 \end{tabular}
- \label{tb:rankedMethods}
-\caption{Most relevant .NET Framework methods per data center. {\sc mb:[What do you think about removing "System." from each method name?]}}
+ 
+\caption{Most relevant .NET Framework methods per data center. All methods are within the {\tt System} namespace. Methods in bold are those that appear in the top 10 in at least 3 of the five data centers.
+\label{tb:rankedMethods}}
 \end{table*}
 
 

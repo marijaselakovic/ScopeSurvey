@@ -1,5 +1,5 @@
 \section{Introduction \label{sec:intro}}
-Large-scale data-processing frameworks, such as MapReduce~\cite{MapReduce}, SCOPE~\cite{SCOPE}, Hadoop~\cite{Hadoop}, Spark~\cite{Spark}, have become an integral part of computing today. One reason for their immense popularity is that they provide a simplified programming model that greatly simplifies the distribution and fault-tolerance of big-data processing. For instance, frameworks like SCOPE and Spark provide a SQL-like declarative interface for specifying the relational skeleton of data-processing jobs while providing extensibility by supporting expressions and functions written in general-purpose languages like C\#, Java, or Scala. 
+Large-scale data-processing frameworks, such as MapReduce~\cite{MapReduce}, SCOPE~\cite{SCOPE}, Hadoop~\cite{Dittrich:2010}, Spark~\cite{zaharia2010spark}, have become an integral part of computing today. One reason for their immense popularity is that they provide a simplified programming model that greatly simplifies the distribution and fault-tolerance of big-data processing. For instance, frameworks like SCOPE and Spark provide a SQL-like declarative interface for specifying the relational skeleton of data-processing jobs while providing extensibility by supporting expressions and functions written in general-purpose languages like C\#, Java, or Scala. 
 
 %\emph{MapReduce} framework has become an immensely popular for easy development of scalable parallel applications that process large amounts of data. 
 %The advantage of MapReduce is that it isolates the details of running a big data application as a distributed program. 
@@ -11,7 +11,7 @@ Big data systems assume that the non-relational part is written carefully enough
 However, these systems are known to lag far behind traditional database systems in runtime efficiency~\cite{Jahani:2011,Pavlo:2009}, primarily because of the flexibility of the programming model they support. For instance,  a key bottleneck in Spark is neither the disk nor the network, but the time spent by the CPU on compression/decompression of data, serialization/deserialization of the input into/from Java objects, and the JVM garbage collection~\cite{ousterhout-nsdi15}. SCOPE,  described more fully in Section~\ref{sec:Scope}, supports a hybrid native (C++) and C\# runtime partly to alleviate this overhead.
 Like SCOPE, Hadoop Streaming lets programmers write programs in a mix of languages\cite{hadoop_stream}. 
 Our analysis shows that this cross-language interaction (in SCOPE, between the native and C\# runtimes) is a significant cost in the overall system.  
-Equally importantly, the presence of non-relational code blocks the powerful relational optimizations implemented in these data-processing runtimes~\cite{non-relational-opt-papers}. 
+Equally importantly, the presence of non-relational code blocks the powerful relational optimizations implemented in these data-processing runtimes, e.g. ~\cite{guo2012spotting}. 
 
 
 The goal of this work is to study and better understand the key performance bottlenecks in modern data-processing systems, and demonstrate the potential for cross-language optimizations. While this paper is primarily about SCOPE, we believe our results and optimizations generalize to other data-processing systems. 
@@ -76,10 +76,10 @@ bool M(string x, string y) {
 
 In Figure~\ref{fig:native}, the predicate in the {\tt WHERE} clause is subject to two potential optimizations:
 \begin{enumerate}
-\item The optimizer may choose to {\em promote} one (or both) of the conjuncts to an earlier part of the program, especially if either {\tt A} or {\tt B} are columns used for partitioning the data.
-This can dramatically reduce the amount of data needed to be transferred from one vertex to another.
+\item The optimizer may choose to {\em promote} one (or both) of the conjuncts to an earlier part of the script, especially if either {\tt A} or {\tt B} are columns used for partitioning the data.
+This can dramatically reduce the amount of data needed to be transferred across the network.
 \item The SCOPE compiler has a set of methods that it considers to be {\em intrinsics}.
-An intrinsic is a .NET method for which the SCOPE runtime has a semantically equivalent native function.
+An intrinsic is a .NET method for which the SCOPE runtime has a semantically equivalent native function, i.e., implemented in C++.
 For instance, the method {\tt String.isNullOrEmpty} checks whether its argument is either null or else the empty string.
 The corresponding native method is able to execute on the native data encoding which does not involve creating any .NET objects or instantiating the {\em CLR}, i.e., the .NET virtual machine.
 \end{enumerate}
@@ -105,7 +105,7 @@ We find programs with non-relational code take between 45-70\% of data center CP
 % It returns a list of most commonly used framework methods, for which having C++ implementation would trigger more generation of native code.
 Finally, we discuss the effects of cross-language optimization based on \emph{method inlining}. 
 By inlining a method call, the compiler/optimizer is now aware of the logic contained in the body of the method. 
-We prove the effectiveness of such optimizations in Z case studies by optimizing K jobs from U different teams at Microsoft. 
+We discuss the effectiveness of such optimizations in 5 case studies by optimizing jobs from 5 different teams at Microsoft. 
 
 % Our experimental evaluation shows that non-native code takes between 45-75\% of data center CPU time. By further increasing the list of framework functions that have native implementation we can optimize up to Z\% of data center time.
 % Finally, we illustrate that performance impact of inlining jobs to run as native is statistically significant and range between A and B\%. 
