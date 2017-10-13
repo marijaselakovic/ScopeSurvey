@@ -3,12 +3,12 @@
 \paragraph{Underapproximation of performance impact}
 The amount of time that can be optimized by either increasing the list of intrinsics or method inlining is an underapproximation of the total optimizable time.
 We do not consider effects of optimizations on another compiler optimizations.
-For example, if a method is inlined on a column used to partition data, the inlining would not only trigger more C++ generation, it would also enable filter promotion~\cite{}.
+For example, if a method is inlined on a column used to partition data, the inlining would not only trigger more C++ generation, it would also enable filter promotion~\cite{Darlington78}.
 Understanding the impact of inlining on another compiler optimizations is left for future work.
 
 \paragraph{Assumptions for static analysis}
 Our static analysis detects sources of C\# code based on several assumptions.
-For example, we use naming conventions when pruning generated methods in C\# implementation of managed operators.
+For example, we use naming conventions when pruning generated methods in C\# implementation of non-native operators.
 A user can potentially call some of these methods in the script, meaning that we would skip a valuable source of user-written C\# code.
 However, in practice, such methods are not used in the context of big-data jobs and our manual exploration of many SCOPE scripts illustrates that our assumptions hold.
 

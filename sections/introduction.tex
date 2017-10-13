@@ -84,7 +84,7 @@ For instance, the method {\tt String.isNullOrEmpty} checks whether its argument 
 The corresponding native method is able to execute on the native data encoding which does not involve creating any .NET objects or instantiating the {\em CLR}, i.e., the .NET virtual machine.
 \end{enumerate}
 
-On the other hand, Figure~\ref{fig:non-native} shows a slight variation where the user implemented the predicate in a separate C\# method. Unfortunately, the SCOPE compiler treats the call to user-defined functions as a black box. As a result, both optimizations are disabled and the predicate is executed in a C\# virtual machine. The resulting serialization and data-copying costs can reduce the throughput of the job by as much as XXX percent. 
+On the other hand, Figure~\ref{fig:non-native} shows a slight variation where the user implemented the predicate in a separate C\# method. Unfortunately, the SCOPE compiler treats the call to user-defined functions as a black box. As a result, both optimizations are disabled and the predicate is executed in a C\# virtual machine. The resulting serialization and data-copying costs can reduce the throughput of the job by as much as 90\% percent. 
 
 
 %has a call to \emph{Split} method, which the SCOPE compiler does not understand. This causes the ent
