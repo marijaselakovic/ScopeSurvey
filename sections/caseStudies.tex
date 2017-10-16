@@ -39,6 +39,11 @@ This is consistent with our results for Job A, where the operator had essentiall
 \caption{Case Study B \label{fig:CaseStudyB}}
 \end{figure}
 
+We also optimized Job F, a very low cost job.
+It only runs a few times a month, so we were able to obtain timing information for only a few executions.
+The vertex containing the optimized operator accounted for over 99\% of the overall CPU time for the entire job.
+The job runs so quickly that the CPU time is highly variable; instead we found the throughput measurements to be reliable.
+The optimized version consistently provided twice the the throughput for the entire job.
 
 We looked at 3 other jobs, summarized in Figure~\ref{fig:caseStudySummary}.
 One of them turned out to be a false positive, where we mistakenly thought a method was an intrinsic.
@@ -46,8 +51,8 @@ For the other two, we were not able to perform the same kind of historical study
 \begin{figure}[ht]
 \begin{tabular}{c|c|c|c} 
 {\em Job Name} & {\em Job Cost} & {\em Vertex Change} & {\em Job Change} \\ \hline
-A & medium & 59.63\%  & 23.00\% \\
-B & medium & -13.49\% & -7.99\% \\
+%A & medium & 59.63\%  & 23.00\% \\
+%B & medium & -13.49\% & -7.99\% \\
 C & low    & 41.98\%  & 25.00\% \\
 D & false positive & \\
 E & high   & 7.22\%   & 4.79\%
@@ -57,5 +62,9 @@ For Jobs A and B the numbers are averages over the a one week period.
 \label{fig:caseStudySummary}}
 \end{figure}
 
+% Job A  is guid ???
+% Job B is guid ???
 % Job C is guid 01e72a39 and vertex SV4_Extract
-% Job E is giod f2bd0961 and SV1_Extract_Combine_Split
+% Job D is guid 0414cd51
+% Job E is guid f2bd0961 and SV1_Extract_Combine_Split
+% Job F is guid ac127d4f
