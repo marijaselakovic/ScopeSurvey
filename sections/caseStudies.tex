@@ -55,16 +55,16 @@ E & yes & high   & 7.22\%   & 4.79\% & \todo{} \\
 F & yes & low & no change & no change & \todo{}\\
 
 %For Jobs A and B the numbers are averages over the a one week period.
-\label{fig:caseStudySummary}
 \end{tabular}
-\caption{Summary of case studies. The reported changes are percent improvement in CPU time and throughput.}
+\caption{Summary of case studies. The reported changes are percent improvement in CPU time and throughput. \label{fig:caseStudySummary}}
 \end{figure*}
 
 We also optimized Job F, a very low cost job.
 It only runs a few times a month, so we were able to obtain timing information for only a few executions.
 The vertex containing the optimized operator accounted for over 99\% of the overall CPU time for the entire job.
-The job runs so quickly that the CPU time is highly variable; instead we found the throughput measurements to be reliable.
-The optimized version consistently provided twice the the throughput for the entire job.
+We found the CPU time to be highly variable; perhaps this is because the job runs so quickly so it is more sensitive to the batch environment in which it runs.
+However,  we found the throughput measurements to be reliable: the optimized version consistently provided twice the throughput for the entire job (again, compared to the average of the unoptimized version).
+{\bf mb:[Does that even make sense? If the CPU time is so different, how can the throughput be consistent?]}
 
 We looked at 3 other jobs, summarized in Figure~\ref{fig:caseStudySummary}.
 One of them turned out to be a false positive, where we mistakenly thought a method was an intrinsic.
