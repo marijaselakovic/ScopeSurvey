@@ -35,9 +35,30 @@ However, as Figure~\ref{fig:CaseStudyB} shows, the normalized vertex CPU time do
 Closer analysis of the vertex shows that the operator which had been in C\# accounted for a very tiny percentage of the execution time for the vertex.
 This is consistent with our results for Job A, where the operator had essentially been 100\% of the execution time of the vertex.
 \begin{figure}[ht]
-\includegraphics{graphs/normalizedTimesB}
-\caption{Case Study B \label{fig:CaseStudyB}}
+\includegraphics{graphs/throughtputF}
+\caption{Case Study F \label{fig:CaseStudyF}}
 \end{figure}
+\begin{figure*}[ht]
+
+\begin{tabular}{c|c|c|c|c|c} 
+\toprule
+  {\em Job Name} & {\em C++ translation}&{\em Job Cost} & \multicolumn{2}{c}{\em CPU time} &  {\em Throughput } \\
+  \cmidrule{4-5}  
+  & & & {\em Vertex Change} & {\em Job Change} &  \\
+  \midrule
+
+A & yes & medium & 59.63\%  & 23.00\% & \todo{}\\
+B &yes & medium & no change & no change & \todo{}\\
+C & yes & low    & 41.98\%  & 25.00\% & \todo{}\\
+D & no & - & - & - & -\\
+E & yes & high   & 7.22\%   & 4.79\% & \todo{} \\
+F & yes & low & no change & no change & \todo{}\\
+
+%For Jobs A and B the numbers are averages over the a one week period.
+\label{fig:caseStudySummary}
+\end{tabular}
+\caption{Summary of case studies. The reported changes are percent improvement in CPU time and throughput.}
+\end{figure*}
 
 We also optimized Job F, a very low cost job.
 It only runs a few times a month, so we were able to obtain timing information for only a few executions.
@@ -48,19 +69,7 @@ The optimized version consistently provided twice the the throughput for the ent
 We looked at 3 other jobs, summarized in Figure~\ref{fig:caseStudySummary}.
 One of them turned out to be a false positive, where we mistakenly thought a method was an intrinsic.
 For the other two, we were not able to perform the same kind of historical study: instead we have just one execution of the optimized script.
-\begin{figure}[ht]
-\begin{tabular}{c|c|c|c} 
-{\em Job Name} & {\em Job Cost} & {\em Vertex Change} & {\em Job Change} \\ \hline
-%A & medium & 59.63\%  & 23.00\% \\
-%B & medium & -13.49\% & -7.99\% \\
-C & low    & 41.98\%  & 25.00\% \\
-D & false positive & \\
-E & high   & 7.22\%   & 4.79\%
-\end{tabular}
-\caption{Summary of case studies. The reported changes are percent improvement in CPU time.
-For Jobs A and B the numbers are averages over the a one week period.
-\label{fig:caseStudySummary}}
-\end{figure}
+
 
 % Job A  is guid 74a1edb8
 % Job B is guid 9b432578
