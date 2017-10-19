@@ -7,7 +7,7 @@ An optimizable vertex is one that is implemented in C\#, but the C\# code calls 
 We then manually looked at the top jobs from  a ranked list (by CPU time) of jobs containing an optimizable vertex.
 
 Because the input data for each job is not available, we needed to contact the job owners and ask them to re-run the job with a manually-inlined version of their script.
-We were able to have only a few jobs re-run by their owners.
+We were able to have \casestudyjobs{} jobs re-run by their owners.
 We roughly categorize the jobs by their total CPU time: short, medium, and long.
 
 \subsection{Optimizations With Effects On Job Algebra}
@@ -20,26 +20,7 @@ However, none of the case studies ended up causing this kind of optimization.
 Even if the physical plan does not change, the resulting program might be might more efficient if it avoids the native to managed transition.
 For SCOPE, the set of intrinsics means that by lifting more non-relational code into the parts of the program where such things are visible to the optimizer, more code can be executed in C++ instead of in C\#.
 
-For instance, Job A is a medium-expensive job that runs daily which contains exactly one optimizable vertex due to a UDF.
-Inlining that UDF resulted in the entire vertex being executed in C++.
-Figure~\ref{fig:CaseStudyA} shows the CPU time for that vertex over an 18 day period, the last 5 of which were with the inlined UDF.
-The values are normalized by the average of the unoptimized execution times; the optimized version saves approximately 60\% of the execution time.
-
-\begin{figure}[ht]
-\includegraphics{graphs/normalizedTimesA}
-\caption{Case Study A \label{fig:CaseStudyA}}
-\end{figure}
-
-On the other hand, Job B is similar to Job A: it is also a medium-expensive job which runs daily and contains one optimizable vertex due to a UDF.
-However, as Figure~\ref{fig:CaseStudyB} shows, the normalized vertex CPU time does not show any consistent improvement for the last five jobs.
-Closer analysis of the vertex shows that the operator which had been in C\# accounted for a very tiny percentage of the execution time for the vertex.
-This is consistent with our results for Job A, where the operator had essentially been 100\% of the execution time of the vertex.
-\begin{figure}[ht]
-\includegraphics{graphs/throughtputF}
-\caption{Case Study F \label{fig:CaseStudyF}}
-\end{figure}
 \begin{figure*}[ht]
-
 \begin{tabular}{c|c|c|c|c|c} 
 \toprule
   {\em Job Name} & {\em C++ translation}&{\em Job Cost} & \multicolumn{2}{c}{\em CPU time} &  {\em Throughput } \\
@@ -47,17 +28,40 @@ This is consistent with our results for Job A, where the operator had essentiall
   & & & {\em Vertex Change} & {\em Job Change} &  \\
   \midrule
 
-A & yes & medium & 59.63\%  & 23.00\% & \todo{}\\
-B &yes & medium & no change & no change & \todo{}\\
+A & yes & medium & 59.63\%  & 23.00\% & 30\%\\
+B &yes & medium & no change & no change & no change\\
 C & yes & low    & 41.98\%  & 25.00\% & \todo{}\\
 D & no & - & - & - & -\\
 E & yes & high   & 7.22\%   & 4.79\% & \todo{} \\
-F & yes & low & no change & no change & \todo{}\\
+F & yes & low & no change & no change & 215\%\\
 
 %For Jobs A and B the numbers are averages over the a one week period.
 \end{tabular}
 \caption{Summary of case studies. The reported changes are percent improvement in CPU time and throughput. \label{fig:caseStudySummary}}
 \end{figure*}
+
+In total, we looked at \casestudyjobs{} re-run jobs, summarized in Figure~\ref{fig:caseStudySummary}. 
+For one job (D), the optimization did not trigger C++ translation of an inlined operator because the operator called to a non-intrinsicable method that happened to be in our list of intrinsics.. 
+After fixing this problem, we use the new set of intrinsics to obtain data presented in Section~\ref{sec:evaluation}.
+\begin{figure}[ht]
+\includegraphics{graphs/normalizedTimesA}
+\caption{Case Study A \label{fig:CaseStudyA}}
+\end{figure}
+
+\begin{figure}[ht]
+\includegraphics{graphs/throughtputF}
+\caption{Case Study F \label{fig:CaseStudyF}}
+\end{figure}
+
+
+For jobs A and B, we were able to perfom the historical study over a period of 18 days. 
+Both jobs are medium-expensive jobs, run daily and contain exactly one optimizable vertex due to a UDF. In both cases, inlining that UDF resulted in the entire vertex being executed in C++.
+Figure~\ref{fig:CaseStudyA} shows the CPU time for an optimized vertex in Job A over an 18 day period, the last 5 of which were with the inlined UDF.
+The values are normalized by the average of the unoptimized execution times; the optimized version saves approximately 60\% of the execution time.
+However, the normalized vertex CPU time in Job B does not show any consistent improvement for the last five jobs.
+Closer analysis of the vertex shows that the operator which had been in C\# accounted for a very tiny percentage of the execution time for the vertex.
+This is consistent with our results for Job A, where the operator had essentially been 100\% of the execution time of the vertex.
+
 
 We also optimized Job F, a very low cost job.
 It only runs a few times a month, so we were able to obtain timing information for only a few executions.
@@ -66,9 +70,8 @@ We found the CPU time to be highly variable; perhaps this is because the job run
 However,  we found the throughput measurements to be reliable: the optimized version consistently provided twice the throughput for the entire job (again, compared to the average of the unoptimized version).
 {\bf mb:[Does that even make sense? If the CPU time is so different, how can the throughput be consistent?]}
 
-We looked at 3 other jobs, summarized in Figure~\ref{fig:caseStudySummary}.
-One of them turned out to be a false positive, where we mistakenly thought a method was an intrinsic.
-For the other two, we were not able to perform the same kind of historical study: instead we have just one execution of the optimized script.
+Finally, for jobs C and E we were not able to perform the same kind of historical study: instead we have just one execution of the optimized scripts. 
+For this execution we found improvements in both, vertex and job CPU times.
 
 
 % Job A  is guid 74a1edb8
