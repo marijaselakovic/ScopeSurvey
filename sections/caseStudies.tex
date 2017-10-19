@@ -41,8 +41,8 @@ F & yes & low & no change & no change & 215\%\\
 \end{figure*}
 
 In total, we looked at \casestudyjobs{} re-run jobs, summarized in Figure~\ref{fig:caseStudySummary}. 
-For one job (D), the optimization did not trigger C++ translation of an inlined operator because the operator called to a non-intrinsicable method that happened to be in our list of intrinsics.. 
-After fixing this problem, we use the new set of intrinsics to obtain data presented in Section~\ref{sec:evaluation}.
+For one job (D), the optimization did not trigger C++ translation of an inlined operator because the operator called to a non-intrinsicable method that we mistakenly thought was an intrinsic.
+After fixing this problem, we used the correct set of intrinsics to obtain data presented in Section~\ref{sec:evaluation}.
 \begin{figure}[ht]
 \includegraphics{graphs/normalizedTimesA}
 \caption{Case Study A \label{fig:CaseStudyA}}
@@ -67,11 +67,10 @@ We also optimized Job F, a very low cost job.
 It only runs a few times a month, so we were able to obtain timing information for only a few executions.
 The vertex containing the optimized operator accounted for over 99\% of the overall CPU time for the entire job.
 We found the CPU time to be highly variable; perhaps this is because the job runs so quickly so it is more sensitive to the batch environment in which it runs.
-However,  we found the throughput measurements to be reliable: the optimized version consistently provided twice the throughput for the entire job (again, compared to the average of the unoptimized version).
-{\bf mb:[Does that even make sense? If the CPU time is so different, how can the throughput be consistent?]}
+However,  we found the throughput measurements to be consistent: the optimized version provided twice the throughput for the entire job (again, compared to the average of the unoptimized version).
 
 Finally, for jobs C and E we were not able to perform the same kind of historical study: instead we have just one execution of the optimized scripts. 
-For this execution we found improvements in both, vertex and job CPU times.
+For this execution we found improvements in both vertex and job CPU times.
 
 
 % Job A  is guid 74a1edb8
