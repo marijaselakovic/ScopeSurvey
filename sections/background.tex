@@ -8,7 +8,7 @@ In addition, SCOPE allows user-defined functions, {\em UDFs}, and user-defined o
 \subsection{Execution of a Script}
 A script is implemented as a directed acyclic graph (DAG) where each vertex is a set of operators implemented on the same physical (or virtual) machine. We use the term {\it node} for the physical or virtual machine that a vertex is implemented on.
 The edges of the DAG are communication channels that use a high-speed communication network between nodes.
-The operators within a vertex are the end product of a very sophisticated optimizer \cite{}; expressions written within a certain construct in the script may end up being executed in vertices that do not correspond to the construct in a simple manner.
+The operators within a vertex are the end product of a very sophisticated optimizer; expressions written within a certain construct in the script may end up being executed in vertices that do not correspond to the construct in a simple manner.
 For instance, a sub-expression from a {\tt WHERE} clause, {\em filter}, may be {\it promoted} into a vertex which extracts an input table from a data source, whereas the rest of the filter may be in a vertex that is many edges distant from the input layer.
 An execution of a script is called a {\em job}.
 

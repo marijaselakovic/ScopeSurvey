@@ -18,7 +18,7 @@ The job algebra is a graph representation of the job execution plan. Job vertice
 
 
 \paragraph{Runtime Statistics}
-The runtime statistics file provides information on execution time for every job vertex and every operator inside the vertex. Among other statistics it includes CPU times, which we use as the primary metric of performance. Big data systems process significant amounts of data but often are CPU-bound\cite{Ousterhour} due to the large overheads behind serialization and de-serialization so we measure (in addition to bytes read and written) CPU time.
+The runtime statistics file provides information on execution time for every job vertex and every operator inside the vertex. Among other statistics it includes CPU times, which we use as the primary metric of performance. Big data systems process significant amounts of data but often are CPU-bound\cite{ousterhout-nsdi15} due to the large overheads behind serialization and de-serialization so we measure (in addition to bytes read and written) CPU time.
 
 %\paragraph{Binaries}
 %The job repository stores a job and all third-party projects in binary format (dll) that contains both native and managed code (.NET) with the generated assembly code.

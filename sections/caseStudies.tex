@@ -56,7 +56,7 @@ After fixing this problem, we used the correct set of intrinsics to obtain data 
 
 For jobs A and B, we were able to perfom the historical study over a period of 18 days. 
 Both jobs are medium-expensive jobs, run daily and contain exactly one optimizable vertex due to a UDF. In both cases, inlining that UDF resulted in the entire vertex being executed in C++.
-Figure~\ref{fig:CaseStudyA} shows the CPU time for an optimized vertex in Job A over an 18 day period, the last 5 of which were with the inlined UDF.
+Figure~\ref{fig:CaseStudyA} shows the improvements in CPU time and throughput for an optimized vertex in Job A over an 18 day period, the last 5 of which were with the inlined UDF.
 The values are normalized by the average of the unoptimized execution times; the optimized version saves approximately 60\% of the execution time.
 However, the normalized vertex CPU time in Job B does not show any consistent improvement for the last five jobs.
 Closer analysis of the vertex shows that the operator which had been in C\# accounted for a very tiny percentage of the execution time for the vertex.

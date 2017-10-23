@@ -2,8 +2,9 @@
 
 We plan to pursue several avenues in the near future.
 First, we would like to do a broader set of experiments.
-Even our limited case studies point out that, while it may not hurt, it may not be especially beneficial to inline UDFs.
-It would be good to know what other optimizations are more important in such jobs.
+Even our limited case studies point out the powerfulness of inlining UDFs, it would be beneficial to prune out jobs which do not benefit from such optimization. 
 
-We would also like to explore ways to relax the restrictions on which methods we can inline.
+Furthermore, we would like to explore ways to relax the restrictions on which methods we can inline.
 In particular, user-defined operators (UDOs) consume an inordinate amount of time in each data center: being able to optimize them could provide a very large benefit.
+
+Finally, exploiting other optimizations in the context of big data jobs at Microsoft is also left for future work.

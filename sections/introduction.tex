@@ -16,7 +16,7 @@ Equally importantly, the presence of non-relational code blocks the powerful rel
 
 The goal of this work is to study and better understand the key performance bottlenecks in modern data-processing systems, and demonstrate the potential for cross-language optimizations. While this paper is primarily about SCOPE, we believe our results and optimizations generalize to other data-processing systems. 
 %SCOPE (Structured Computations for Parallel Execution) is a query language that combines relational logic written in SQL with user expressions written in C\#.
-SCOPE is the key data-processing system used at Microsoft running at least half a million jobs daily on serveral Microsoft data centers. 
+SCOPE is the key data-processing system used at Microsoft running at least half a million jobs daily on several Microsoft data centers. 
 Figure~\ref{fig:example} shows a simple example of a SCOPE program (hereafter referred to as a {\em script}) that interleaves relational logic with C\# expressions.
 
 %To achieve this goal, we empiricaly analyse over 3,000,000 SCOPE jobs that run across five data centers at Microsoft during one week. 
@@ -105,7 +105,7 @@ We find programs with non-relational code take between 45-70\% of data center CP
 % It returns a list of most commonly used framework methods, for which having C++ implementation would trigger more generation of native code.
 Finally, we discuss the effects of cross-language optimization based on \emph{method inlining}. 
 By inlining a method call, the compiler/optimizer is now aware of the logic contained in the body of the method. 
-We discuss the effectiveness of such optimizations in 5 case studies by optimizing jobs from 5 different teams at Microsoft. 
+We discuss the effectiveness of such optimizations in 6 case studies by optimizing jobs from 5 different teams at Microsoft. 
 
 % Our experimental evaluation shows that non-native code takes between 45-75\% of data center CPU time. By further increasing the list of framework functions that have native implementation we can optimize up to Z\% of data center time.
 % Finally, we illustrate that performance impact of inlining jobs to run as native is statistically significant and range between A and B\%. 
