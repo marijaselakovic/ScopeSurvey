@@ -1,6 +1,6 @@
 \section{Case Studies}
 \label{sec:caseStudy}
-In order to quantify the effects of optimizing the scripts, we performed a case study.
+In order to quantify the effects of optimizing the scripts, we performed several case studies.
 We say that a C\# method is {\em intrinsicable} if it is a .NET Framework method for which the SCOPE compiler has a semantically equivalent C++ function.
 The jobs were chosen based on a static analysis that found {\em optimizable vertices}.
 An optimizable vertex is one that is implemented in C\#, but the C\# code calls only intrinsicable methods or user-defined functions, {\em UDFs}, where the UDF, in turn, calls only intrinsicable methods, and does not call any other UDFs, i.e., our inlining depth is one.
@@ -17,7 +17,7 @@ However, none of the case studies ended up causing this kind of optimization.
 
 
 \subsection{Optimizations Without Effects On Job Algebra}
-Even if the physical plan does not change, the resulting program might be might more efficient if it avoids the native to managed transition.
+Even if the physical plan does not change, the resulting program might be more efficient if it avoids the native to managed transition.
 For SCOPE, the set of intrinsics means that by lifting more non-relational code into the parts of the program where such things are visible to the optimizer, more code can be executed in C++ instead of in C\#.
 
 \begin{figure*}[ht]
@@ -41,8 +41,8 @@ F & yes & low & no change & no change & 115\% \\
 \end{figure*}
 
 In total, we looked at \casestudyjobs{} re-run jobs, summarized in Figure~\ref{fig:caseStudySummary}. 
-For one job (D), the optimization did not trigger C++ translation of an inlined operator because the operator called to a non-intrinsicable method that we mistakenly thought was an intrinsic.
-After fixing this problem, we used the correct set of intrinsics to obtain data presented in Section~\ref{sec:evaluation}.
+For one job (D), the optimization did not trigger C++ translation of an inlined operator because the operator called to a non-intrinsicable method that we mistakenly thought was an intrinsic. After detecting this problem, we fix the set of intrinsics and use the new set to obtain data presented in Section~\ref{sec:evaluation}.
+
 \begin{figure}[ht]
 \includegraphics{graphs/normalizedTimesA}
 \caption{Case Study A \label{fig:CaseStudyA}}
