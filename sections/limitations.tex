@@ -4,7 +4,7 @@
 The amount of time that can be optimized by either increasing the list of intrinsics or method inlining is an underapproximation of the total optimizable time.
 We do not consider effects of inlining on another compiler optimizations.
 For example, if a method is inlined on a column used to partition data, the inlining would not only trigger more C++ generation, it would also enable filter promotion~\cite{Darlington78}.
-Understanding the impact of inlining on another compiler optimizations is left for future work.
+Understanding the impact of inlining on other compiler optimizations is left for future work.
 
 \paragraph{Assumptions for static analysis}
 Our static analysis detects sources of C\# code based on several assumptions.

@@ -32,7 +32,7 @@ Both source and binary are available for the generated code.
 
 \subsection{Static Analysis}
 
-After collecting the artifacts described in Section~\ref{sec:artifacts}, we perfom static analysis to detect different sources of C\# code in every vertex of a job. This is important to understand the opportunities for optimizing job vertices through C\# to C++ translation. For instance, an operator can run as managed code due to only a single method call, or because of more complex C\# code.
+After collecting the artifacts described in Section~\ref{sec:artifacts}, we perform static analysis to detect different sources of C\# code in every vertex of a job. This is important to understand the opportunities for optimizing job vertices through C\# to C++ translation. For instance, an operator can run as managed code due to only a single method call, or because of more complex C\# code.
 
 Figure~\ref{fig:analysis} gives an overview of our analysis. It has two main components: \emph{Analysis of C++ code} and \emph{Analysis of C\# code}. Each analysis performs at the granularity of a job vertex. The goal is to look for opportunities to run an entire vertex as C++ code, which would remove all steps of data serialization between user and native operators within the vertex.
 
@@ -80,7 +80,7 @@ shadow,minimum height=1em]
 \label{fig:analysis}
 \end{figure}
 
-The first step of the analysis is to extract names of every job vertex, which serve as unique identifiers for vertices. Then for each vertex, the analysis parses the generated C++ to find the class containing the vertex implementation. As discussed in Section~\ref{sec:artifacts}, for each vertex, the C++ implementation contains two code regions: one that indicates which part of a vertex runs as C++ code and another region listing class names of operators that run as C\# code. If the latter region is empty, we conclude that the entire vertex runs as C++ code. The output of the first stage of our analysis is the collection of class names that contain C\# operators.
+The first step of the analysis is to extract the names of each job vertex, which serves as a unique identifier for the vertex. Then for each vertex, the analysis parses the generated C++ to find the class containing the vertex implementation. As discussed in Section~\ref{sec:artifacts}, for each vertex, the C++ implementation contains two code regions: one that indicates which part of a vertex runs as C++ code and another region listing class names of operators that run as C\# code. If the latter region is empty, we conclude that the entire vertex runs as C++ code. The output of the first stage of our analysis is the collection of class names that contain C\# operators.
 
 Based on the output of the previous stage, the analysis parses the generated C\# code to find definitions and implementation of every class in the list. The implementation of managed operators contains two sources of C\# code: generated code, which we whitelist and skip in our analysis and the user-written code. After analyzing user code, the analysis outputs the following sources of method calls:
 \begin{itemize}
